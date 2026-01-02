@@ -1,0 +1,23 @@
+{
+  "name": "@mol-view-stories/state-builder",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "molstar": "^5.5.0"
+  },
+  "files": [
+    "./src"
+  ],
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.0.16",
+    "@vitest/ui": "^4.0.16",
+    "vitest": "^4.0.16"
+  }
+}

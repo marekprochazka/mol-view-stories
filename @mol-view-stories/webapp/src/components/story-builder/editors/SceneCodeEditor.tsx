@@ -75,6 +75,7 @@ export function SceneCodeEditor({ value, commonCode, onChange, onSave, className
     onChange?.(newValue);
   };
 
+
   return (
     <div className={className || 'absolute inset-0'} ref={parentRef}>
       <Editor
