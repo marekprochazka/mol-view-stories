@@ -1,0 +1,394 @@
+# Animations
+
+::: {.callout-important}
+## Experimental Feature
+Animations are an **experimental feature** in MolViewSpec. The API may change in future releases. Use with caution in production environments.
+:::
+
+::: {.callout-tip}
+## What are Animations?
+Animations create smooth transitions between different states of your visualization, such as color changes or opacity fades over time.
+:::
+
+MolViewSpec supports animations to create dynamic, time-based visualizations that can show molecular processes, guide viewer attention, or create cinematic presentations.
+
+## Animation Use Cases
+
+### Scientific Storytelling
+- **Molecular mechanisms**: Show conformational changes or binding events
+- **Guided tours**: Direct attention to different regions sequentially
+- **Process visualization**: Illustrate multi-step biochemical processes
+
+### Presentations
+- **Progressive disclosure**: Reveal structure elements one at a time
+- **Emphasis**: Fade in/out or change colors to highlight features
+
+## How Animations Work
+
+Animations in MolViewSpec use references (`ref`) to target specific properties:
+
+1. Add `ref` to properties you want to animate (color, opacity, etc.)
+2. Create an animation using `builder.animation()`
+3. Add interpolations to animate between values over time
+4. The animation automatically runs when the scene is loaded
+
+## Basic Animation Pattern
+
+### Opacity Animation
+
+```{.molviewspec}
+const structure = builder
+  .download({ url: 'https://files.wwpdb.org/download/1cbs.cif' })
+  .parse({ format: 'mmcif' })
+  .modelStructure();
+
+// Add opacity with a reference
+structure
+  .component({ selector: "polymer" })
+  .representation({ type: "cartoon" })
+  .color({ color: "lightblue" })
+  .opacity({ opacity: 1.0, ref: "protein_opacity" });
+
+// Create animation
+const anim = builder.animation();
+
+// Fade from solid to semi-transparent
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'protein_opacity',
+  start_ms: 0,
+  duration_ms: 3000,
+  property: 'opacity',
+  end: 0.3
+});
+```
+
+### Color Animation
+
+```{.molviewspec}
+const structure = builder
+  .download({ url: 'https://files.wwpdb.org/download/1cbs.cif' })
+  .parse({ format: 'mmcif' })
+  .modelStructure();
+
+// Add color with a reference
+structure
+  .component({ selector: "polymer" })
+  .representation({ type: "cartoon" })
+  .color({ color: "blue", ref: "protein_color" });
+
+const anim = builder.animation();
+
+// Animate color from blue to cyan
+anim.interpolate({
+  kind: 'color',
+  target_ref: 'protein_color',
+  start_ms: 0,
+  duration_ms: 3000,
+  property: 'color',
+  palette: { kind: 'continuous', colors: ['blue', 'cyan'] }
+});
+```
+
+## Multiple Animations
+
+Animate multiple properties simultaneously:
+
+```{.molviewspec}
+const structure = builder
+  .download({ url: 'https://files.wwpdb.org/download/1cbs.cif' })
+  .parse({ format: 'mmcif' })
+  .modelStructure();
+
+// Protein with opacity reference
+structure
+  .component({ selector: "polymer" })
+  .representation({ type: "cartoon" })
+  .color({ color: "lightblue" })
+  .opacity({ opacity: 1.0, ref: "protein_opacity" });
+
+// Ligand with color reference
+structure
+  .component({ selector: "ligand" })
+  .representation({ type: "ball_and_stick" })
+  .color({ color: "red", ref: "ligand_color" });
+
+const anim = builder.animation();
+
+// Fade protein
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'protein_opacity',
+  start_ms: 0,
+  duration_ms: 2000,
+  property: 'opacity',
+  end: 0.2
+});
+
+// Change ligand color (delayed)
+anim.interpolate({
+  kind: 'color',
+  target_ref: 'ligand_color',
+  start_ms: 2000,
+  duration_ms: 2000,
+  property: 'color',
+  palette: { kind: 'continuous', colors: ['red', 'yellow'] }
+});
+```
+
+## Sequential Animations
+
+Use `start_ms` to create sequences:
+
+```{.molviewspec}
+const structure = builder
+  .download({ url: 'https://files.wwpdb.org/download/1cbs.cif' })
+  .parse({ format: 'mmcif' })
+  .modelStructure();
+
+structure
+  .component({ selector: "polymer" })
+  .representation({ type: "cartoon" })
+  .color({ color: "blue", ref: "color_1" });
+
+const anim = builder.animation();
+
+// First: Blue to green (0-2s)
+anim.interpolate({
+  kind: 'color',
+  target_ref: 'color_1',
+  start_ms: 0,
+  duration_ms: 2000,
+  property: 'color',
+  palette: { kind: 'continuous', colors: ['blue', 'green'] }
+});
+
+// Then: Green to red (2-4s)
+anim.interpolate({
+  kind: 'color',
+  target_ref: 'color_1',
+  start_ms: 2000,
+  duration_ms: 2000,
+  property: 'color',
+  palette: { kind: 'continuous', colors: ['green', 'red'] }
+});
+```
+
+## Progressive Reveal Pattern
+
+Fade in components one by one:
+
+```{.molviewspec}
+const structure = builder
+  .download({ url: 'https://files.wwpdb.org/download/1cbs.cif' })
+  .parse({ format: 'mmcif' })
+  .modelStructure();
+
+// Start both invisible
+structure
+  .component({ selector: "polymer" })
+  .representation({ type: "cartoon" })
+  .color({ color: "lightblue" })
+  .opacity({ opacity: 0.0, ref: "protein_opacity" });
+
+structure
+  .component({ selector: "ligand" })
+  .representation({ type: "ball_and_stick" })
+  .color({ color: "red" })
+  .opacity({ opacity: 0.0, ref: "ligand_opacity" });
+
+const anim = builder.animation();
+
+// Reveal protein first (0-2s)
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'protein_opacity',
+  start_ms: 0,
+  duration_ms: 2000,
+  property: 'opacity',
+  end: 1.0
+});
+
+// Then reveal ligand (2.5-3.5s)
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'ligand_opacity',
+  start_ms: 2500,
+  duration_ms: 1000,
+  property: 'opacity',
+  end: 1.0
+});
+```
+
+## Animating Labels
+
+You can also animate primitive properties like label opacity:
+
+```{.molviewspec}
+const structure = builder
+  .download({ url: 'https://files.wwpdb.org/download/1cbs.cif' })
+  .parse({ format: 'mmcif' })
+  .modelStructure();
+
+structure
+  .component({ selector: "polymer" })
+  .representation({ type: "cartoon" })
+  .color({ color: "lightblue" })
+  .opacity({ opacity: 1.0, ref: "protein_opacity" });
+
+// Add labels with opacity reference
+const primitives = builder.primitives({
+  label_background_color: 'black',
+  ref: 'my_labels',
+  label_opacity: 0
+});
+
+primitives.label({
+  text: 'Active Site',
+  position: { label_asym_id: 'A', label_seq_id: 50 },
+  label_size: 3,
+  label_color: 'yellow'
+});
+
+const anim = builder.animation();
+
+// Fade in structure
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'protein_opacity',
+  start_ms: 0,
+  duration_ms: 2000,
+  property: 'opacity',
+  end: 0.3
+});
+
+// Then fade in labels
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'my_labels',
+  start_ms: 2000,
+  duration_ms: 500,
+  property: 'label_opacity',
+  end: 1
+});
+```
+
+## Animation Parameters
+
+### builder.animation()
+
+Creates an animation controller. Optional parameters:
+
+- `custom`: Custom Molstar animations (e.g., camera rock)
+  ```javascript
+  const anim = builder.animation({
+    custom: {
+      molstar_trackball: {
+        name: 'rock',
+        params: { speed: 0.05 }
+      }
+    }
+  });
+  ```
+
+### interpolate()
+
+Creates an interpolation between values:
+
+**Common Parameters**:
+- `target_ref`: Reference to the property to animate
+- `property`: Property name (`"color"`, `"opacity"`, `"label_opacity"`)
+- `start_ms`: When to start (milliseconds from scene start)
+- `duration_ms`: Animation duration (milliseconds)
+
+**For Color Animations** (`kind: "color"`):
+- `palette`: Color gradient
+  - `kind: "continuous"`: Smooth gradient
+  - `colors`: Array of color values
+
+**For Scalar Animations** (`kind: "scalar"`):
+- `end`: Ending value (starting value comes from the ref)
+- `easing`: Optional easing function
+
+## Easing Functions
+
+Control the acceleration of animations:
+
+- `"linear"` - Constant speed
+- `"cubic-in"` - Start slow, accelerate
+- `"cubic-out"` - Start fast, decelerate
+- `"cubic-in-out"` - Start and end slow, fast in middle
+- `"quadratic-in"`, `"quadratic-out"`, `"quadratic-in-out"`
+- `"exponential-in"`, `"exponential-out"`, `"exponential-in-out"`
+
+```javascript
+anim.interpolate({
+  kind: 'scalar',
+  target_ref: 'protein_opacity',
+  start_ms: 0,
+  duration_ms: 2000,
+  property: 'opacity',
+  end: 0.3,
+  easing: 'cubic-in-out'
+});
+```
+
+## Custom Camera Animations
+
+Add camera movements to your animations:
+
+```javascript
+const anim = builder.animation({
+  custom: {
+    molstar_trackball: {
+      name: 'rock',        // Rock the camera back and forth
+      params: { speed: 0.05 }
+    }
+  }
+});
+```
+
+Available camera animations:
+- `'rock'` - Rock back and forth
+- `'spin'` - Continuous rotation
+
+## Animation in MolViewStories
+
+::: {.callout-note}
+## Story Scenes as Animation Frames
+In MolViewStories, each scene can represent a "frame" in your narrative. Scene transitions provide a higher-level alternative to MolViewSpec animations.
+:::
+
+MolViewStories provides complementary approaches:
+- **Scene transitions**: Move between different states
+- **Scene-specific cameras**: Different viewpoints per scene
+- **Progressive scenes**: Build complexity across multiple scenes
+- **MolViewSpec animations**: Smooth transitions within a single scene
+
+## Performance Tips
+
+::: {.callout-warning}
+## Animation Performance
+- **Short durations**: Keep animations under 3-5 seconds for best UX
+- **Limit simultaneous animations**: Too many at once can cause lag
+- **Simple representations**: Cartoon animates faster than surface
+- **Test on target devices**: Performance varies by hardware
+:::
+
+## Accessibility Considerations
+
+::: {.callout-important}
+## Motion Sensitivity
+Some users may be sensitive to motion. Consider:
+- Providing slower transitions by default
+- Avoiding rapid color changes or flashing
+- Including a note that animations are present
+- Testing with users who have vestibular disorders
+:::
+
+## See Also
+
+- [Camera Settings](camera.qmd) - Camera positioning
+- [Primitives](primitives.qmd) - Adding labels and custom geometry
+- [Examples](examples.qmd) - More interactive examples
+- [Tree Schema](mvs-spec.qmd) - Complete node reference

@@ -1,0 +1,166 @@
+# MolViewSpec API
+
+
+::: {.callout-note}
+## About MolViewSpec
+MolViewSpec is the declarative format used to define molecular visualizations in MolViewStories. It provides a simple, text-based way to describe structures, representations, colors, labels, and more. Below is the entire nodegraph
+:::
+
+```sh
+root
+├── camera (global camera position)
+├── canvas (background color)
+├── download (load data from URL)
+│   └── parse (parse file format)
+│       ├── structure (create 3D structure)
+│       │   ├── component (select part of structure)
+│       │   │   ├── representation (visual style)
+│       │   │   │   ├── color (inline color)
+│       │   │   │   ├── color_from_uri (color from external file)
+│       │   │   │   ├── color_from_source (color from mmCIF)
+│       │   │   │   ├── label (inline label)
+│       │   │   │   ├── label_from_uri (labels from external file)
+│       │   │   │   ├── label_from_source (labels from mmCIF)
+│       │   │   │   ├── tooltip (inline tooltip)
+│       │   │   │   ├── tooltip_from_uri (tooltips from external file)
+│       │   │   │   ├── tooltip_from_source (tooltips from mmCIF)
+│       │   │   │   └── opacity (transparency control)
+│       │   │   ├── focus (auto-frame component)
+│       │   │   └── transform (rotate/translate)
+│       │   ├── component_from_uri (components from external file)
+│       │   │   └── representation (same children as component)
+│       │   └── component_from_source (components from mmCIF)
+│       │       └── representation (same children as component)
+│       └── volume (volumetric data)
+│           └── volume_representation (isosurface)
+│               ├── color
+│               └── opacity
+└── primitives (custom geometry group)
+    ├── primitive (individual shape)
+    │   ├── {arrow | box | ellipse | ellipsoid | others ... }
+    └── primitives_from_uri (load primitives from file)
+```
+
+::: {.callout-note}
+## About the MolViewSpec API
+MolViewSpec API provides uses the builder pattern to create molviewspec JSON.
+:::
+
+## Quick Example
+
+```{.molviewspec}
+// 1.the builder creates the root node above.
+// 2. mol-view-stories uses builder.get_state()
+//    to return the full JSON tree.
+// 3. the MVSJ is passed to the molstar canvas
+const structure = builder
+  .download({ url: 'https://www.ebi.ac.uk/pdbe/entry-files/1cbs.bcif' })
+  .parse({ format: 'bcif' })
+  .modelStructure()
+  .component({ selector: 'polymer' })
+  .representation({ type: 'cartoon' })
+  .color({ color: 'blue' });
+
+// get_state() occurs behind the scenes
+```
+
+## MolViewSpec Sections
+
+This section provides comprehensive documentation for different aspects of the MolViewSpec API:
+
+- [Tree Schema](mvs-spec.qmd): Complete reference of all MolViewSpec node types, their parameters, and relationships. This is the authoritative specification of what you can do with MVS.
+- [Selectors](selectors.qmd): Learn how to select specific parts of a structure (chains, residues, atoms) using static selectors, component expressions, and union expressions.
+- [Annotations](annotations.qmd): External annotation files for applying colors, labels, and tooltips to structures. Supports JSON, CIF, and BCIF formats.
+- [Camera Settings](camera.qmd): Control camera position, orientation, and field of view to create specific viewpoints.
+- [Primitives](primitives.qmd): Add custom geometric shapes (arrows, spheres, lines) to your visualizations for highlighting or annotations.
+- [Volumetric Data](volumes.qmd): Display electron density maps, cryo-EM maps, and other volumetric data with isosurfaces.
+- [Animations](animations.qmd): Create smooth transitions and animations between different states of your visualization.
+
+## Builder API Pattern
+
+The builder API follows a **fluent, chainable** pattern:
+
+```javascript
+// Each method returns a builder object
+const structure = builder
+    .download({ url: '...' })  // Returns download node
+    .parse({ format: 'bcif' }) // Returns parse node
+    .modelStructure();         // Returns structure node
+
+// You can continue building from any node
+structure
+    .component({ selector: 'protein' })    // Returns component node
+    .representation({ type: 'cartoon' })   // Returns representation node
+    .color({ color: 'blue' });             // Returns color node
+
+
+// If you need to branch, define a variable. `structure` is one such variable.
+const ligand = structure.component({ selector: 'ligand' });
+
+// now we define `ligand` and can reuse it
+ligand.focus()
+ligand
+    .representation({ type: 'cartoon' })
+    .color({ color: 'blue' });
+```
+
+## Common Patterns
+
+```javascript
+//Loading a PDB Entry
+const structure = builder
+    .download({ url: 'https://www.ebi.ac.uk/pdbe/entry-files/1cbs.bcif' })
+    .parse({ format: 'bcif' })
+    .modelStructure();
+
+//Loading an AlphaFold Prediction
+const structure = builder
+    .download({ url: 'https://alphafold.ebi.ac.uk/files/AF-P00520-F1-model_v4.cif' })
+    .parse({ format: 'mmcif' })
+    .modelStructure();
+
+/// Selecting and Styling Components
+// Protein as cartoon
+structure
+    .component({ selector: 'protein' })
+    .representation({ type: 'cartoon' })
+    .color({ color: 'secondary-structure' });
+
+// Ligands as ball-and-stick
+structure
+    .component({ selector: 'ligand' })
+    .representation({ type: 'ball_and_stick' })
+    .color({ color: 'element-symbol' });
+
+// Water as spheres
+structure
+    .component({ selector: 'water' })
+    .representation({ type: 'spacefill' })
+    .color({ color: 'red' });
+
+// Highlighting Specific Residues
+// Highlight active site residues
+structure
+    .component({
+        selector: {
+            label_asym_id: 'A',
+            label_seq_id: [50, 60]
+        }
+    })
+    .representation({ type: 'ball_and_stick' })
+    .color({ color: '#ff6600' });
+```
+
+## Learning Path
+
+1. **Start with [Selectors](selectors.qmd)** - Understanding how to select parts of structures is fundamental
+2. **Review [Tree Schema](mvs-spec.qmd)** - Learn what nodes are available and their parameters
+3. **Explore [Annotations](annotations.qmd)** - For advanced coloring and labeling from external data
+4. **Add [Primitives](primitives.qmd)** - For custom annotations and highlights
+5. **Fine-tune with [Camera Settings](camera.qmd)** - Perfect your viewpoints
+
+## Additional Resources
+
+- [MolViewSpec Primer](../molviewspec-primer.qmd) - Introduction and basic concepts
+- [Official MolViewSpec Documentation](https://molstar.org/mol-view-spec)
+- [Mol* Viewer Documentation](https://molstar.org/viewer-docs/)
