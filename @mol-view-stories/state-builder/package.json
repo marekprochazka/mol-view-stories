@@ -7,7 +7,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "codegen": "tsx src/cli/index.ts"
   },
   "dependencies": {
     "molstar": "^5.5.0"
@@ -16,8 +17,10 @@
     "./src"
   ],
   "devDependencies": {
+    "@types/node": "^22.10.5",
     "@vitest/coverage-v8": "4.0.16",
     "@vitest/ui": "^4.0.16",
+    "tsx": "^4.19.2",
     "vitest": "^4.0.16"
   }
 }
