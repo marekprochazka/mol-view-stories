@@ -63,7 +63,7 @@ import Link from 'next/link';
 import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
 import { LLMContext } from './editors/llm-context';
-import { UIBuilder } from '../ui-builder';
+import { UIBuilder } from './ui-builder';
 
 function Vector({ value, className }: { value?: Vec3 | number[]; title?: string; className?: string }) {
   return (
