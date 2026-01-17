@@ -3,13 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { Operation, OperationType } from '@mol-view-stories/state-builder';
+import type { UINode } from '@mol-view-stories/state-builder/src';
+import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
-import { ConstantOperation } from './components/ConstantOperation';
 import { TreeLines } from './components/TreeLines';
 import { OperationActions } from './components/OperationActions';
-import { TypeSelect } from './components/TypeSelect';
+import { KindSelect } from './components/KindSelect';
 import {
   DownloadFields,
   ParseFields,
@@ -20,12 +20,11 @@ import {
   TransformFields,
   LabelFields,
   PrimitivesFields,
-  AnimationFields,
 } from './components/fields';
 
 interface OperationRowProps {
-  operation: Operation;
-  onUpdate: (updates: Partial<Operation>) => void;
+  node: UINode;
+  onUpdate: (updates: Partial<UINode>) => void;
   onRemove: () => void;
   onAddChild?: () => void;
   onCopy?: () => void;
@@ -37,7 +36,7 @@ interface OperationRowProps {
 }
 
 export function OperationRow({
-  operation,
+  node,
   onUpdate,
   onRemove,
   onAddChild,
@@ -50,134 +49,57 @@ export function OperationRow({
 }: OperationRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const handleTypeChange = (type: OperationType) => {
-    onUpdate({ type, params: {} });
+  const handleKindChange = (kind: MVSKind) => {
+    onUpdate({ kind, params: {} });
   };
 
-  const handleParamChange = (key: string, value: string) => {
-    onUpdate({
-      params: { ...operation.params, [key]: value },
-    });
+  const handleParamsChange = (params: Record<string, unknown>) => {
+    onUpdate({ params });
   };
 
   const handleRefChange = (value: string) => {
     onUpdate({ ref: value });
   };
 
-  const canHaveChildren = ['structure', 'component', 'representation', 'primitives'].includes(operation.type);
+  const canHaveChildren = ['structure', 'component', 'representation', 'primitives', 'download', 'parse'].includes(node.kind);
 
   const renderDynamicFields = () => {
-    if (!operation.params) {
+    if (!node.params) {
       return null;
     }
 
-    switch (operation.type) {
-      case 'constant':
-        // Handled specially by ConstantOperation component
-        return null;
-
+    switch (node.kind) {
       case 'download':
-        return <DownloadFields value={operation.params.url || ''} onChange={(v) => handleParamChange('url', v)} />;
+        return <DownloadFields params={node.params} onChange={handleParamsChange} />;
 
       case 'parse':
-        return <ParseFields value={operation.params.format || ''} onChange={(v) => handleParamChange('format', v)} />;
+        return <ParseFields params={node.params} onChange={handleParamsChange} />;
 
       case 'structure':
-        return (
-          <StructureFields
-            value={operation.params.structureType || ''}
-            onChange={(v) => handleParamChange('structureType', v)}
-          />
-        );
+        return <StructureFields params={node.params} onChange={handleParamsChange} />;
 
       case 'component':
-        return (
-          <ComponentFields
-            selectorType={operation.params.selectorType || ''}
-            selectorValue={operation.params.selectorValue || ''}
-            onSelectorTypeChange={(v) => handleParamChange('selectorType', v)}
-            onSelectorValueChange={(v) => handleParamChange('selectorValue', v)}
-          />
-        );
+        return <ComponentFields params={node.params} onChange={handleParamsChange} />;
 
       case 'representation':
-        return (
-          <RepresentationFields
-            value={operation.params.repType || ''}
-            onChange={(v) => handleParamChange('repType', v)}
-          />
-        );
+        return <RepresentationFields params={node.params} onChange={handleParamsChange} />;
 
       case 'color':
-        return (
-          <ColorFields
-            colorType={operation.params.colorType || ''}
-            color={operation.params.color || ''}
-            onColorTypeChange={(v) => handleParamChange('colorType', v)}
-            onColorChange={(v) => handleParamChange('color', v)}
-          />
-        );
+        return <ColorFields params={node.params} onChange={handleParamsChange} />;
 
       case 'transform':
-        return (
-          <TransformFields
-            translation={operation.params.translation || ''}
-            rotation={operation.params.rotation || ''}
-            onTranslationChange={(v) => handleParamChange('translation', v)}
-            onRotationChange={(v) => handleParamChange('rotation', v)}
-          />
-        );
+        return <TransformFields params={node.params} onChange={handleParamsChange} />;
 
       case 'label':
-        return (
-          <LabelFields
-            text={operation.params.text || ''}
-            position={operation.params.position || ''}
-            size={operation.params.size || ''}
-            onTextChange={(v) => handleParamChange('text', v)}
-            onPositionChange={(v) => handleParamChange('position', v)}
-            onSizeChange={(v) => handleParamChange('size', v)}
-          />
-        );
+        return <LabelFields params={node.params} onChange={handleParamsChange} />;
 
       case 'primitives':
-        return (
-          <PrimitivesFields value={operation.params.options || ''} onChange={(v) => handleParamChange('options', v)} />
-        );
-
-      case 'animation':
-        return (
-          <AnimationFields
-            animType={operation.params.animType || ''}
-            params={operation.params.params || ''}
-            onAnimTypeChange={(v) => handleParamChange('animType', v)}
-            onParamsChange={(v) => handleParamChange('params', v)}
-          />
-        );
+        return <PrimitivesFields params={node.params} onChange={handleParamsChange} />;
 
       default:
         return null;
     }
   };
-
-  // Special layout for constant type
-  if (operation.type === 'constant') {
-    return (
-      <ConstantOperation
-        operation={operation}
-        depth={depth}
-        isLast={isLast}
-        isFirst={isFirst}
-        onTypeChange={handleTypeChange}
-        onParamChange={handleParamChange}
-        onRefChange={handleRefChange}
-        onRemove={onRemove}
-        onMoveUp={onMoveUp}
-        onMoveDown={onMoveDown}
-        onCopy={onCopy}
-      />
-    );
-  }
 
   return (
     <div className='relative' style={{ marginLeft: depth > 0 ? '20px' : '0' }}>
@@ -197,7 +119,7 @@ export function OperationRow({
             </Button>
           )}
 
-          <TypeSelect value={operation.type} onChange={handleTypeChange} />
+          <KindSelect value={node.kind} onChange={handleKindChange} />
 
           {renderDynamicFields()}
 
@@ -206,7 +128,7 @@ export function OperationRow({
             <Input
               className='h-8 text-sm'
               placeholder='name'
-              value={operation.ref || ''}
+              value={node.ref || ''}
               onChange={(e) => handleRefChange(e.target.value)}
               title='Reference name to use this operation later'
             />
@@ -225,47 +147,47 @@ export function OperationRow({
         </div>
       </div>
 
-      {isExpanded && operation.children && operation.children.length > 0 && (
+      {isExpanded && node.children && node.children.length > 0 && (
         <div className='mt-2 space-y-2'>
-          {operation.children.map((child, index) => (
+          {node.children.map((child, index) => (
             <OperationRow
               key={child.id}
-              operation={child}
+              node={child}
               depth={depth + 1}
               isFirst={index === 0}
-              isLast={index === operation.children!.length - 1}
+              isLast={index === node.children!.length - 1}
               onUpdate={(updates) => {
-                const newChildren = [...operation.children!];
+                const newChildren = [...node.children!];
                 newChildren[index] = { ...child, ...updates };
                 onUpdate({ children: newChildren });
               }}
               onRemove={() => {
-                const newChildren = operation.children!.filter((_, i) => i !== index);
+                const newChildren = node.children!.filter((_, i) => i !== index);
                 onUpdate({ children: newChildren });
               }}
               onAddChild={() => {
-                const newChild: Operation = {
+                const newChild: UINode = {
                   id: Date.now().toString() + Math.random(),
-                  type: '',
+                  kind: '',
                   params: {},
                   children: [],
                 };
-                onUpdate({ children: [...(operation.children || []), newChild] });
+                onUpdate({ children: [...(node.children || []), newChild] });
               }}
               onCopy={() => {
                 const copiedChild = JSON.parse(JSON.stringify(child));
                 copiedChild.id = Date.now().toString() + Math.random();
-                onUpdate({ children: [...operation.children!, copiedChild] });
+                onUpdate({ children: [...node.children!, copiedChild] });
               }}
               onMoveUp={() => {
                 if (index === 0) return;
-                const newChildren = [...operation.children!];
+                const newChildren = [...node.children!];
                 [newChildren[index - 1], newChildren[index]] = [newChildren[index], newChildren[index - 1]];
                 onUpdate({ children: newChildren });
               }}
               onMoveDown={() => {
-                if (index >= operation.children!.length - 1) return;
-                const newChildren = [...operation.children!];
+                if (index >= node.children!.length - 1) return;
+                const newChildren = [...node.children!];
                 [newChildren[index], newChildren[index + 1]] = [newChildren[index + 1], newChildren[index]];
                 onUpdate({ children: newChildren });
               }}

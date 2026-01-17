@@ -1,71 +1,58 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { Operation } from '@mol-view-stories/state-builder';
+import { ASTFactory } from '@mol-view-stories/state-builder/src/compiler/ast/factory';
+import { CodeGenerator } from '@mol-view-stories/state-builder/src/compiler/codegen/generator';
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
+import { createEmptyNode, UINode } from '@mol-view-stories/state-builder/src';
 
 export function UIBuilder() {
-  const [operations, setOperations] = useState<Operation[]>([
+  const [nodes, setNodes] = useState<UINode[]>([
     {
       id: '1',
-      type: 'constant',
-      ref: 'Colors',
-      params: {
-        name: 'Colors',
-        constantType: 'colors',
-        entries: JSON.stringify([
-          { key: '1opl', value: '#4577B2' },
-          { key: 'ligand', value: '#BF99A1' },
-        ]),
-      },
-      children: [],
-    },
-    {
-      id: '2',
-      type: 'download',
+      kind: 'download',
       params: {
         url: '1opl',
       },
       children: [
         {
-          id: '2.1',
-          type: 'parse',
+          id: '1.1',
+          kind: 'parse',
           params: {
             format: 'bcif',
           },
           children: [
             {
-              id: '2.1.1',
-              type: 'structure',
+              id: '1.1.1',
+              kind: 'structure',
               ref: '_1opl',
               params: {
-                structureType: 'model',
+                type: 'model',
               },
               children: [
                 {
-                  id: '2.1.1.1',
-                  type: 'component',
+                  id: '1.1.1.1',
+                  kind: 'component',
                   ref: '_1opl_poly',
                   params: {
-                    selectorType: 'chain',
-                    selectorValue: 'A',
+                    selector: 'polymer',
                   },
                   children: [
                     {
-                      id: '2.1.1.1.1',
-                      type: 'representation',
+                      id: '1.1.1.1.1',
+                      kind: 'representation',
                       ref: '_1opl_poly_repr',
                       params: {
-                        repType: 'cartoon',
+                        type: 'cartoon',
                       },
                       children: [
                         {
-                          id: '2.1.1.1.1.1',
-                          type: 'color',
+                          id: '1.1.1.1.1.1',
+                          kind: 'color',
                           params: {
-                            colorType: 'uniform',
                             color: '#4577B2',
                           },
                           children: [],
@@ -75,25 +62,24 @@ export function UIBuilder() {
                   ],
                 },
                 {
-                  id: '2.1.1.2',
-                  type: 'component',
+                  id: '1.1.1.2',
+                  kind: 'component',
                   params: {
-                    selectorType: 'ligand',
-                    selectorValue: 'C',
+                    selector: 'ligand',
                   },
                   children: [
                     {
-                      id: '2.1.1.2.1',
-                      type: 'representation',
+                      id: '1.1.1.2.1',
+                      kind: 'representation',
                       params: {
-                        repType: 'ball-and-stick',
+                        type: 'ball-and-stick',
                       },
                       children: [
                         {
-                          id: '2.1.1.2.1.1',
-                          type: 'color',
+                          id: '1.1.1.2.1.1',
+                          kind: 'color',
                           params: {
-                            colorType: 'element-symbol',
+                            color: 'element-symbol',
                           },
                           children: [],
                         },
@@ -107,96 +93,110 @@ export function UIBuilder() {
         },
       ],
     },
-    {
-      id: '3',
-      type: 'primitives',
-      params: {},
-      children: [
-        {
-          id: '3.1',
-          type: 'label',
-          params: {
-            text: 'SH2 Domain',
-            position: '0,0,0',
-            size: '9',
-          },
-          children: [],
-        },
-      ],
-    },
   ]);
 
-  const addOperation = () => {
-    const newOp: Operation = {
-      id: Date.now().toString(),
-      type: '',
-      params: {},
-      children: [],
-    };
-    setOperations([...operations, newOp]);
+  const addNode = () => {
+    const newNode = createEmptyNode();
+    setNodes([...nodes, newNode]);
   };
 
-  const updateOperation = (id: string, updates: Partial<Operation>) => {
-    setOperations(operations.map((op) => (op.id === id ? { ...op, ...updates } : op)));
+  const updateNode = (id: string, updates: Partial<UINode>) => {
+    setNodes(nodes.map((node) => (node.id === id ? { ...node, ...updates } : node)));
   };
 
-  const removeOperation = (id: string) => {
-    if (operations.length === 1) return;
-    setOperations(operations.filter((op) => op.id !== id));
+  const removeNode = (id: string) => {
+    if (nodes.length === 1) return;
+    setNodes(nodes.filter((node) => node.id !== id));
   };
 
-  const addChildToOperation = (id: string) => {
-    setOperations(
-      operations.map((op) => {
-        if (op.id === id) {
-          const newChild: Operation = {
-            id: Date.now().toString() + Math.random(),
-            type: '',
-            params: {},
-            children: [],
-          };
+  const addChildToNode = (id: string) => {
+    setNodes(
+      nodes.map((node) => {
+        if (node.id === id) {
+          const newChild = createEmptyNode();
           return {
-            ...op,
-            children: [...(op.children || []), newChild],
+            ...node,
+            children: [...(node.children || []), newChild],
           };
         }
-        return op;
+        return node;
       })
     );
   };
 
-  const copyOperation = (id: string) => {
-    const opToCopy = operations.find((op) => op.id === id);
-    if (!opToCopy) return;
+  const copyNode = (id: string) => {
+    const nodeToCopy = nodes.find((node) => node.id === id);
+    if (!nodeToCopy) return;
 
-    const copiedOp = JSON.parse(JSON.stringify(opToCopy));
-    copiedOp.id = Date.now().toString();
-    if (copiedOp.ref) copiedOp.ref = copiedOp.ref + '_copy';
+    const copiedNode = JSON.parse(JSON.stringify(nodeToCopy));
+    copiedNode.id = Date.now().toString();
+    if (copiedNode.ref) copiedNode.ref = copiedNode.ref + '_copy';
 
-    setOperations([...operations, copiedOp]);
+    setNodes([...nodes, copiedNode]);
   };
 
-  const moveOperationUp = (id: string) => {
-    const index = operations.findIndex((op) => op.id === id);
-    if (index <= 0) return; // Already at top or not found
+  const moveNodeUp = (id: string) => {
+    const index = nodes.findIndex((node) => node.id === id);
+    if (index <= 0) return;
 
-    const newOperations = [...operations];
-    [newOperations[index - 1], newOperations[index]] = [newOperations[index], newOperations[index - 1]];
-    setOperations(newOperations);
+    const newNodes = [...nodes];
+    [newNodes[index - 1], newNodes[index]] = [newNodes[index], newNodes[index - 1]];
+    setNodes(newNodes);
   };
 
-  const moveOperationDown = (id: string) => {
-    const index = operations.findIndex((op) => op.id === id);
-    if (index === -1 || index >= operations.length - 1) return; // Not found or already at bottom
+  const moveNodeDown = (id: string) => {
+    const index = nodes.findIndex((node) => node.id === id);
+    if (index === -1 || index >= nodes.length - 1) return;
 
-    const newOperations = [...operations];
-    [newOperations[index], newOperations[index + 1]] = [newOperations[index + 1], newOperations[index]];
-    setOperations(newOperations);
+    const newNodes = [...nodes];
+    [newNodes[index], newNodes[index + 1]] = [newNodes[index + 1], newNodes[index]];
+    setNodes(newNodes);
   };
+
+  // Helper to remove UI-only id field before passing to compiler
+  const stripIds = (node: UINode): any => ({
+    kind: node.kind,
+    params: node.params,
+    ...(node.ref && { ref: node.ref }),
+    ...(node.children && node.children.length > 0 && {
+      children: node.children.map(stripIds),
+    }),
+  });
 
   const generateCode = () => {
-    // TODO: Implement code generation
-    console.log('Operations:', JSON.stringify(operations, null, 2));
+    try {
+      // Build MVS data structure with root wrapper
+      const mvsData = {
+        root: {
+          kind: 'root' as const,
+          params: {},
+          children: nodes.map(stripIds),
+        },
+        metadata: {
+          timestamp: new Date().toISOString(),
+        },
+      };
+
+      console.log('MVS Data:', JSON.stringify(mvsData, null, 2));
+
+      // Pass directly to compiler
+      const ast = ASTFactory.fromMVSData(mvsData);
+
+      const generator = new CodeGenerator({
+        includeSectionMarkers: true,
+        builderVar: 'builder',
+        includeComments: true,
+      });
+
+      const code = generator.generate(ast);
+
+      console.log('Generated code:', code);
+
+      toast.success('Code generated successfully!');
+    } catch (error) {
+      console.error('Code generation error:', error);
+      toast.error(`Failed to generate code: ${error instanceof Error ? error.message : String(error)}`);
+    }
   };
 
   return (
@@ -204,7 +204,7 @@ export function UIBuilder() {
       <div className='flex items-center justify-between pb-2 border-b'>
         <h3 className='text-sm font-medium'>Visual Builder</h3>
         <div className='flex gap-2'>
-          <Button onClick={addOperation} size='sm' variant='outline'>
+          <Button onClick={addNode} size='sm' variant='outline'>
             <PlusIcon className='size-4 mr-1' />
             Add
           </Button>
@@ -215,18 +215,18 @@ export function UIBuilder() {
       </div>
 
       <div className='flex-1 min-h-0 overflow-y-auto space-y-2 pb-20'>
-        {operations.map((op, index) => (
+        {nodes.map((node, index) => (
           <OperationRow
-            key={op.id}
-            operation={op}
+            key={node.id}
+            node={node}
             isFirst={index === 0}
-            isLast={index === operations.length - 1}
-            onUpdate={(updates) => updateOperation(op.id, updates)}
-            onRemove={() => removeOperation(op.id)}
-            onAddChild={() => addChildToOperation(op.id)}
-            onCopy={() => copyOperation(op.id)}
-            onMoveUp={() => moveOperationUp(op.id)}
-            onMoveDown={() => moveOperationDown(op.id)}
+            isLast={index === nodes.length - 1}
+            onUpdate={(updates) => updateNode(node.id, updates)}
+            onRemove={() => removeNode(node.id)}
+            onAddChild={() => addChildToNode(node.id)}
+            onCopy={() => copyNode(node.id)}
+            onMoveUp={() => moveNodeUp(node.id)}
+            onMoveDown={() => moveNodeDown(node.id)}
           />
         ))}
       </div>

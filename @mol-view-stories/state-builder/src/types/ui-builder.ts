@@ -1,97 +1,63 @@
 /**
- * Headless UI Builder Operation Types
+ * Headless UI Builder Types - MVS Format
  *
- * These types define the structure of operations in the visual UI builder.
- * They are headless (no UI dependencies) and serve as:
- * - Data structures for the UI components to build scenes
- * - Input format for the compiler to generate executable code
+ * These types define MVS nodes in a mutable format suitable for UI editing.
+ * They are compatible with the MVS JSON format used by the compiler.
  *
- * This separation allows the business logic to live in state-builder
- * while UI components can be implemented in any framework.
+ * This is a headless layer (no UI dependencies) that allows:
+ * - Direct storage of MVS-compatible data structures
+ * - Type-safe parameter handling
+ * - Direct compilation to JavaScript without conversion layers
  */
 
-/**
- * All supported operation types in the UI builder
- */
-export type OperationType =
-  | 'constant'
-  | 'download'
-  | 'parse'
-  | 'structure'
-  | 'component'
-  | 'representation'
-  | 'color'
-  | 'opacity'
-  | 'clip'
-  | 'transform'
-  | 'label'
-  | 'tooltip'
-  | 'primitives'
-  | 'camera'
-  | 'focus'
-  | 'canvas'
-  | 'animation';
+import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 
 /**
- * Base operation interface
- * All operations share these common fields
+ * Mutable MVS node for UI editing
+ * This matches the MVS JSON structure but allows mutation for React state
  */
-export interface Operation {
-  /** Unique identifier for this operation */
+export interface UINode {
+  /** Unique ID for React keys (not part of MVS spec) */
   id: string;
 
-  /** The type of operation */
-  type: OperationType | '';
+  /** MVS node kind */
+  kind: MVSKind | '';
 
-  /** Parameters specific to this operation type */
-  params: Record<string, string>;
+  /** Type-safe parameters for this kind */
+  params: Record<string, unknown>;
 
-  /** Optional reference name for this operation to be used elsewhere */
+  /** Optional reference name */
   ref?: string;
 
-  /** Child operations that depend on this operation */
-  children?: Operation[];
+  /** Child nodes */
+  children?: UINode[];
 }
 
 /**
- * Structure for constant definitions (colors, domains, generic key-value pairs)
+ * Complete UI Builder state
  */
-export interface ConstantDefinition {
-  /** Type of constant: colors, domains, or generic */
-  constantType: 'colors' | 'domains' | 'generic';
+export interface UIBuilderState {
+  /** Root-level nodes */
+  nodes: UINode[];
 
-  /** Display name for this constant */
-  name: string;
-
-  /** Key-value entries */
-  entries: Array<{
-    key: string;
-    value: string;
-  }>;
-}
-
-/**
- * Helper type for building selector objects
- */
-export interface SelectorHelper {
-  /** Type of selector helper: chain, residue range, ligand, or quick patterns */
-  selectorType: 'chain' | 'residue' | 'ligand' | 'all';
-
-  /** The constructed selector value */
-  selectorValue: string;
-}
-
-/**
- * Export a collection of operations as a complete scene definition
- */
-export interface SceneDefinition {
-  /** List of operations that define the scene */
-  operations: Operation[];
-
-  /** Metadata about the scene */
+  /** Metadata */
   metadata?: {
-    name?: string;
-    description?: string;
-    version?: string;
+    timestamp?: string;
   };
+}
+
+/**
+ * Helper for creating empty nodes
+ */
+export function createEmptyNode(kind: MVSKind | '' = ''): UINode {
+  return {
+    id: generateId(),
+    kind,
+    params: {},
+    children: [],
+  };
+}
+
+function generateId(): string {
+  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }

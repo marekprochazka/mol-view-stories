@@ -2,15 +2,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface LabelFieldsProps {
-  text: string;
-  position: string;
-  size: string;
-  onTextChange: (value: string) => void;
-  onPositionChange: (value: string) => void;
-  onSizeChange: (value: string) => void;
+  params: Record<string, unknown>;
+  onChange: (params: Record<string, unknown>) => void;
 }
 
-export function LabelFields({ text, position, size, onTextChange, onPositionChange, onSizeChange }: LabelFieldsProps) {
+export function LabelFields({ params, onChange }: LabelFieldsProps) {
+  const text = (params.text as string) || '';
+  const position = (params.position as string) || '';
+  const size = (params.size as string) || '';
+
   return (
     <>
       <div className='flex-1'>
@@ -19,7 +19,7 @@ export function LabelFields({ text, position, size, onTextChange, onPositionChan
           className='h-8 text-sm'
           placeholder='Label text'
           value={text}
-          onChange={(e) => onTextChange(e.target.value)}
+          onChange={(e) => onChange({ ...params, text: e.target.value })}
         />
       </div>
       <div className='flex-1'>
@@ -28,7 +28,7 @@ export function LabelFields({ text, position, size, onTextChange, onPositionChan
           className='h-8 text-sm'
           placeholder='e.g., 0,0,0'
           value={position}
-          onChange={(e) => onPositionChange(e.target.value)}
+          onChange={(e) => onChange({ ...params, position: e.target.value })}
         />
       </div>
       <div className='w-24'>
@@ -38,7 +38,7 @@ export function LabelFields({ text, position, size, onTextChange, onPositionChan
           type='number'
           placeholder='1.5'
           value={size}
-          onChange={(e) => onSizeChange(e.target.value)}
+          onChange={(e) => onChange({ ...params, size: e.target.value })}
         />
       </div>
     </>

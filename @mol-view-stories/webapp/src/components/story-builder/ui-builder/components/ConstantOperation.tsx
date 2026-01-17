@@ -2,18 +2,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Operation, OperationType } from '@mol-view-stories/state-builder';
+import type { UINode } from '@mol-view-stories/state-builder/src';
+import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { PlusIcon, XIcon } from 'lucide-react';
 import { TreeLines } from './TreeLines';
 import { OperationActions } from './OperationActions';
 import { TypeSelect } from './TypeSelect';
 
 interface ConstantOperationProps {
-  operation: Operation;
+  node: UINode;
   depth: number;
   isLast: boolean;
   isFirst: boolean;
-  onTypeChange: (type: OperationType) => void;
+  onKindChange: (kind: MVSKind) => void;
   onParamChange: (key: string, value: string) => void;
   onRefChange: (value: string) => void;
   onRemove: () => void;
@@ -26,11 +27,11 @@ interface ConstantOperationProps {
  * Special rendering for constant operations with key-value entry editor
  */
 export function ConstantOperation({
-  operation,
+  node,
   depth,
   isLast,
   isFirst,
-  onTypeChange,
+  onKindChange,
   onParamChange,
   onRefChange,
   onRemove,
@@ -41,8 +42,8 @@ export function ConstantOperation({
   // Parse entries from JSON or create empty array
   let entries: Array<{ key: string; value: string }> = [];
   try {
-    if (operation.params.entries) {
-      entries = JSON.parse(operation.params.entries);
+    if (node.params.entries) {
+      entries = JSON.parse(node.params.entries as string);
     }
   } catch {
     entries = [];
@@ -52,7 +53,7 @@ export function ConstantOperation({
     onParamChange('entries', JSON.stringify(newEntries));
   };
 
-  const isColorType = operation.params.constantType === 'colors';
+  const isColorType = node.params.constantType === 'colors';
 
   return (
     <div className='relative' style={{ marginLeft: depth > 0 ? '20px' : '0' }}>
@@ -61,12 +62,12 @@ export function ConstantOperation({
       <div className='border rounded-md p-2 bg-card space-y-2'>
         {/* First row: Type selector, Const Type, Name, Ref, Actions */}
         <div className='flex gap-2 items-end'>
-          <TypeSelect value={operation.type} onChange={onTypeChange} />
+          <TypeSelect value={node.kind} onChange={onKindChange} />
 
           <div className='w-32'>
             <Label className='text-xs'>Const Type</Label>
             <Select
-              value={operation.params.constantType || 'generic'}
+              value={(node.params.constantType as string) || 'generic'}
               onValueChange={(value) => onParamChange('constantType', value)}
             >
               <SelectTrigger size='sm'>
@@ -85,7 +86,7 @@ export function ConstantOperation({
             <Input
               className='h-8 text-sm'
               placeholder='e.g., Colors'
-              value={operation.params.name || ''}
+              value={(node.params.name as string) || ''}
               onChange={(e) => onParamChange('name', e.target.value)}
             />
           </div>
@@ -95,7 +96,7 @@ export function ConstantOperation({
             <Input
               className='h-8 text-sm'
               placeholder='name'
-              value={operation.ref || ''}
+              value={node.ref || ''}
               onChange={(e) => onRefChange(e.target.value)}
               title='Reference name to use this operation later'
             />
