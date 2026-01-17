@@ -63,6 +63,7 @@ import Link from 'next/link';
 import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
 import { LLMContext } from './editors/llm-context';
+import { UIBuilder } from '../ui-builder';
 
 function Vector({ value, className }: { value?: Vec3 | number[]; title?: string; className?: string }) {
   return (
@@ -563,6 +564,7 @@ function SceneMarkdownEditorSection() {
 function SceneCodeEditorSection() {
   const scene = useAtomValue(ActiveSceneAtom);
   const story = useAtomValue(StoryAtom);
+  const [viewMode, setViewMode] = useState<'code' | 'builder'>('code');
 
   return (
     <div className='flex flex-col h-full gap-2'>
@@ -576,17 +578,41 @@ function SceneCodeEditorSection() {
       </div>
       <div className='flex gap-6 h-full'>
         <div className='flex-1 flex flex-col gap-2 shrink-0'>
-          <div className='border rounded flex-1 relative'>
-            <SceneCodeEditor
-              value={scene?.javascript || ''}
-              commonCode={story.javascript || ''}
-              onSave={(code) => modifyCurrentScene({ javascript: code })}
-            />
+          <div className='flex gap-2 items-center mb-2'>
+            <Button
+              size='sm'
+              variant={viewMode === 'code' ? 'default' : 'outline'}
+              onClick={() => setViewMode('code')}
+            >
+              Code Editor
+            </Button>
+            <Button
+              size='sm'
+              variant={viewMode === 'builder' ? 'default' : 'outline'}
+              onClick={() => setViewMode('builder')}
+            >
+              UI Builder
+            </Button>
           </div>
-          <div className='flex gap-2'>
-            <PressToSave />
-            <PressToCodeComplete />
-          </div>
+          {viewMode === 'code' ? (
+            <>
+              <div className='border rounded flex-1 relative'>
+                <SceneCodeEditor
+                  value={scene?.javascript || ''}
+                  commonCode={story.javascript || ''}
+                  onSave={(code) => modifyCurrentScene({ javascript: code })}
+                />
+              </div>
+              <div className='flex gap-2'>
+                <PressToSave />
+                <PressToCodeComplete />
+              </div>
+            </>
+          ) : (
+            <div className='border rounded flex-1 relative overflow-hidden'>
+              <UIBuilder />
+            </div>
+          )}
         </div>
         <div className='flex-1 shrink-0'>
           <div className='w-full' style={{ aspectRatio: '1.33/1' }}>

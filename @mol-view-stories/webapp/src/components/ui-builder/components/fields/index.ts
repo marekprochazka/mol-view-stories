@@ -1,0 +1,10 @@
+export { DownloadFields } from './DownloadFields';
+export { ParseFields } from './ParseFields';
+export { StructureFields } from './StructureFields';
+export { ComponentFields } from './ComponentFields';
+export { RepresentationFields } from './RepresentationFields';
+export { ColorFields } from './ColorFields';
+export { TransformFields } from './TransformFields';
+export { LabelFields } from './LabelFields';
+export { PrimitivesFields } from './PrimitivesFields';
+export { AnimationFields } from './AnimationFields';
