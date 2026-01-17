@@ -8,92 +8,211 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
 import { createEmptyNode, UINode } from '@mol-view-stories/state-builder/src';
+import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
+export interface UIBuilderProps {
+  /** Callback when code is generated - receives the generated JavaScript code */
+  onCodeGenerated?: (code: string) => void;
+}
 
-export function UIBuilder() {
-  const [nodes, setNodes] = useState<UINode[]>([
-    {
-      id: '1',
-      kind: 'download',
-      params: {
-        url: '1opl',
-      },
-      children: [
-        {
-          id: '1.1',
-          kind: 'parse',
-          params: {
-            format: 'bcif',
-          },
-          children: [
-            {
-              id: '1.1.1',
-              kind: 'structure',
-              ref: '_1opl',
-              params: {
-                type: 'model',
-              },
-              children: [
-                {
-                  id: '1.1.1.1',
-                  kind: 'component',
-                  ref: '_1opl_poly',
-                  params: {
-                    selector: 'polymer',
-                  },
-                  children: [
-                    {
-                      id: '1.1.1.1.1',
-                      kind: 'representation',
-                      ref: '_1opl_poly_repr',
-                      params: {
-                        type: 'cartoon',
-                      },
-                      children: [
-                        {
-                          id: '1.1.1.1.1.1',
-                          kind: 'color',
-                          params: {
-                            color: '#4577B2',
-                          },
-                          children: [],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  id: '1.1.1.2',
-                  kind: 'component',
-                  params: {
-                    selector: 'ligand',
-                  },
-                  children: [
-                    {
-                      id: '1.1.1.2.1',
-                      kind: 'representation',
-                      params: {
-                        type: 'ball-and-stick',
-                      },
-                      children: [
-                        {
-                          id: '1.1.1.2.1.1',
-                          kind: 'color',
-                          params: {
-                            color: 'element-symbol',
-                          },
-                          children: [],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
+// Type for raw MVS JSON node (more permissive than the strict MVSNode union type)
+interface RawMVSNode {
+  kind: string;
+  params?: Record<string, unknown>;
+  ref?: string;
+  custom?: Record<string, unknown>;
+  children?: RawMVSNode[];
+}
+
+/** Convert raw MVS JSON node to UINode by adding IDs recursively */
+function addIdsToMVSNode(node: RawMVSNode, prefix = ''): UINode {
+  const id = `${prefix}${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  return {
+    id,
+    kind: node.kind as UINode['kind'],
+    params: node.params ?? {},
+    ref: node.ref,
+    custom: node.custom,
+    children: node.children?.map((child, i) => addIdsToMVSNode(child, `${id}_${i}_`)),
+  };
+}
+
+/** Convert MVSTree (root node) to UINode[] (the root's children with IDs) */
+function mvsTreeToUINodes(tree: MVSTree): UINode[] {
+  // MVSTree.children is typed as a discriminated union, cast to RawMVSNode for simpler handling
+  const children = (tree as { children?: RawMVSNode[] }).children;
+  if (!children) return [];
+  return children.map((node, i) => addIdsToMVSNode(node, `${i}_`));
+}
+
+// Example MVS JSON data - can be pasted directly without IDs
+const EXAMPLE_MVS_NODES: MVSTree = {
+
+    "kind": "root",
+    "children": [
+      {
+        "kind": "download",
+        "params": {
+          "url": "https://www.ebi.ac.uk/pdbe/entry-files/download/1opl.bcif"
         },
-      ],
-    },
-  ]);
+        "children": [
+          {
+            "kind": "parse",
+            "params": {
+              "format": "bcif"
+            },
+            "children": [
+              {
+                "kind": "structure",
+                "params": {
+                  "type": "model"
+                },
+                "children": [
+                  {
+                    "kind": "transform",
+                    "params": {
+                      "rotation": [
+                        -0.6321036327, 0.3450463255, 0.6938213248, -0.6288677634, -0.7515716885, -0.1991615756,
+                        0.4527364948, -0.5622126202, 0.6920597055
+                      ],
+                      "translation": [36.3924122492, 118.2516908402, -26.4992054179]
+                    }
+                  },
+                  {
+                    "kind": "component",
+                    "params": {
+                      "selector": {
+                        "label_asym_id": "A"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "representation",
+                        "params": {
+                          "type": "cartoon"
+                        },
+                        "children": [
+                          {
+                            "kind": "color",
+                            "params": {
+                              "color": "#4577B2"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "label",
+                        "params": {
+                          "text": "ABL Kinase"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "component",
+                    "params": {
+                      "selector": {
+                        "label_asym_id": "C"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "representation",
+                        "params": {
+                          "type": "ball_and_stick"
+                        },
+                        "children": [
+                          {
+                            "kind": "color",
+                            "params": {
+                              "color": "#4577B2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "component",
+                    "params": {
+                      "selector": {
+                        "label_asym_id": "D"
+                      }
+                    },
+                    "children": [
+                      {
+                        "kind": "representation",
+                        "params": {
+                          "type": "surface"
+                        },
+                        "children": [
+                          {
+                            "kind": "color",
+                            "params": {},
+                            "custom": {
+                              "molstar_color_theme_name": "element-symbol",
+                              "molstar_color_theme_params": {
+                                "carbonColor": {
+                                  "name": "uniform",
+                                  "params": {
+                                    "value": 4552626
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "kind": "opacity",
+                            "params": {
+                              "opacity": 0.33
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "representation",
+                        "params": {
+                          "type": "ball_and_stick"
+                        },
+                        "children": [
+                          {
+                            "kind": "color",
+                            "params": {},
+                            "custom": {
+                              "molstar_color_theme_name": "element-symbol",
+                              "molstar_color_theme_params": {
+                                "carbonColor": {
+                                  "name": "uniform",
+                                  "params": {
+                                    "value": 4552626
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "camera",
+        "params": {
+          "position": [79.46831913851136, 66.05809711216442, 20.82033041314537],
+          "target": [0.36, 55.32, 21.8],
+          "up": [-0.01, 0.01, -1]
+        }
+      }
+    ]
+  }
+;
+
+export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
+  const [nodes, setNodes] = useState<UINode[]>(() => mvsTreeToUINodes(EXAMPLE_MVS_NODES));
 
   const addNode = () => {
     const newNode = createEmptyNode();
@@ -154,10 +273,11 @@ export function UIBuilder() {
   };
 
   // Helper to remove UI-only id field before passing to compiler
-  const stripIds = (node: UINode): any => ({
+  const stripIds = (node: UINode): RawMVSNode => ({
     kind: node.kind,
     params: node.params,
     ...(node.ref && { ref: node.ref }),
+    ...(node.custom && { custom: node.custom }),
     ...(node.children && node.children.length > 0 && {
       children: node.children.map(stripIds),
     }),
@@ -192,7 +312,13 @@ export function UIBuilder() {
 
       console.log('Generated code:', code);
 
-      toast.success('Code generated successfully!');
+      // Call the callback if provided
+      if (onCodeGenerated) {
+        onCodeGenerated(code);
+        toast.success('Code generated and applied to editor!');
+      } else {
+        toast.success('Code generated successfully! (no callback provided)');
+      }
     } catch (error) {
       console.error('Code generation error:', error);
       toast.error(`Failed to generate code: ${error instanceof Error ? error.message : String(error)}`);

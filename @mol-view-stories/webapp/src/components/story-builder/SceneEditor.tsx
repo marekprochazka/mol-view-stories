@@ -610,7 +610,11 @@ function SceneCodeEditorSection() {
             </>
           ) : (
             <div className='border rounded flex-1 relative overflow-hidden'>
-              <UIBuilder />
+              <UIBuilder
+                onCodeGenerated={(code) => {
+                  modifyCurrentScene({ javascript: code });
+                }}
+              />
             </div>
           )}
         </div>

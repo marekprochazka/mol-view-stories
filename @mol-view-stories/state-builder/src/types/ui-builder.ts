@@ -29,6 +29,9 @@ export interface UINode {
   /** Optional reference name */
   ref?: string;
 
+  /** Custom properties (Molstar-specific extensions like color themes) */
+  custom?: Record<string, unknown>;
+
   /** Child nodes */
   children?: UINode[];
 }
