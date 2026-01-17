@@ -1,0 +1,84 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - '*.qmd'
+  preview:
+    port: 4200
+    browser: false
+
+website:
+  title: 'MolViewStories Documentation'
+  repo-url: https://github.com/molstar/mol-view-stories
+  repo-actions: [edit, issue]
+  site-url: https://molstar.org/mol-view-stories/
+
+  sidebar:
+    style: 'docked'
+    search: true
+    contents:
+      - text: 'Introduction'
+        href: index.qmd
+
+      - section: 'MolViewStories'
+        contents:
+          - text: 'Quick Start'
+            href: getting-started.qmd
+          - text: 'Interface Guide'
+            href: webapp-interface.qmd
+          - text: 'Building Stories'
+            href: core-features.qmd
+          - text: 'Cloud Storage & Sharing'
+            href: webapp-cloud-storage.qmd
+          - text: 'Tips & Workflows'
+            href: tips-shortcuts.qmd
+          - text: 'CLI Tool'
+            href: cli.qmd
+
+      - section: 'MolViewSpec API'
+        contents:
+          - text: 'Overview'
+            href: molviewspec/index.qmd
+          - text: 'Selectors'
+            href: molviewspec/selectors.qmd
+          - text: 'Annotations'
+            href: molviewspec/annotations.qmd
+          - text: 'Camera Settings'
+            href: molviewspec/camera.qmd
+          - text: 'Primitives'
+            href: molviewspec/primitives.qmd
+          - text: 'Volumetric Data'
+            href: molviewspec/volumes.qmd
+          - text: 'Animations'
+            href: molviewspec/animations.qmd
+          - text: 'Examples'
+            href: molviewspec/examples.qmd
+
+      - section: 'Reference'
+        contents:
+          - text: 'API Reference'
+            href: reference-api.qmd
+          - text: 'Advanced Features'
+            href: reference-advanced.qmd
+          - text: 'Glossary'
+            href: reference-glossary.qmd
+          - text: 'FAQ'
+            href: faq-troubleshooting.qmd
+          - text: 'First Time Login'
+            href: first-time-login.qmd
+          - text: 'MVS Spec'
+            href: molviewspec/mvs-spec.qmd
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-overflow: wrap
+
+filters:
+  - zachcp/molviewspec-quarto
+
+execute:
+  freeze: auto

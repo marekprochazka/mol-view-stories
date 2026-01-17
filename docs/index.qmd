@@ -1,0 +1,75 @@
+# Welcome to MolViewStories
+
+![](img/mol-view-stories-banner.png)
+
+MolViewStories is a powerful web application that lets you create beautiful, interactive molecular visualizations. Whether you're a researcher, educator, or student, MolViewStories helps you tell compelling scientific stories using 3D molecular structures.
+
+MolViewStories combines the advanced 3D rendering capabilities of [Mol*](https://molstar.org/) with a story-building interface for the [MolViewSpec](https://molstar.org/mol-view-spec) standard. It allows you to:
+
+- **Create interactive molecular scenes** with proteins, DNA, RNA, and small molecules
+- **Build narrative sequences** that guide viewers through complex molecular processes
+- **Add custom annotations** like labels, highlights, and descriptions
+- **Share your stories** with colleagues, students, or the broader scientific community
+- **Export and reuse** your visualizations across different platforms
+
+## Quick Start
+
+### 🚀 New to MolViewStories?
+
+Start here to learn the basics and create your first story:
+
+**[Getting Started Guide](getting-started.qmd)** - Step-by-step tutorial for creating your first molecular story
+
+**[Building Stories](core-features.qmd)** - Learn about scenes, descriptions, and story composition
+
+**[Interface Guide](webapp-interface.qmd)** - Navigate the MolViewStories interface with confidence
+
+### 📖 Learn MolViewSpec
+
+MolViewStories uses MolViewSpec to define molecular visualizations. These resources will help you master the API:
+
+**[MolViewSpec Examples](molviewspec/examples.qmd)** - Interactive examples you can edit and experiment with
+
+**[Selectors Guide](molviewspec/selectors.qmd)** - Learn how to select specific chains, residues, and atoms
+
+**[Tree Schema Reference](molviewspec/mvs-spec.qmd)** - Complete API documentation for all available nodes
+
+### 🎓 For Educators & Students
+
+**[Tips & Workflows](tips-shortcuts.qmd)** - Best practices for creating educational content
+
+**[FAQ & Troubleshooting](faq-troubleshooting.qmd)** - Common questions and solutions
+
+### 👨‍💻 For Developers
+
+**[CLI Tool](cli.qmd)** - Command-line tool for local development and automation
+
+**[Advanced Features](reference-advanced.qmd)** - Power user features and customization options
+
+**[Glossary](reference-glossary.qmd)** - Technical terms and concepts explained
+
+## Key Features
+
+### 🎨 Code-driven Scene Builder
+Create molecular scenes with a built-in JavaScript code editor to control molecular representations, animations, and interactions. Get full access to [MolViewSpec](https://molstar.org/mol-view-spec) powerful API for advanced customizations.
+
+### 📚 Interactive Storytelling
+Combine multiple scenes into cohesive stories with descriptions, annotations, and smooth transitions between different molecular views.
+
+### 🔗 Share Molecular Stories
+Publish your stories for sharing or embedding in presentations and websites.
+
+### ☁️ Cloud Storage
+Save your work in the cloud, access it from anywhere, and collaborate with others by sharing story links.
+
+## How It Works
+
+1. **Load molecular structures** from online databases or upload your own files
+2. **Create scenes** by positioning the camera, focusing regions of interest, and choosing visual representations
+3. **Add annotations** like labels, highlights, and descriptive text
+4. **Build your story** by combining scenes in a logical sequence
+5. **Share or export** your completed story for others to explore
+
+## Who Should Use This?
+
+Wondering if MolViewStories is right for you? Check out the [FAQ & Troubleshooting](faq-troubleshooting.qmd#who-should-use-molviewstories) page to learn about use cases for researchers, educators, and students.

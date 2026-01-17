@@ -1,15 +1,67 @@
-# MolViewStories Documentation
+# MolViewStories Documentation (Quarto)
 
-Contributions to the documentations are highly welcome! Please make a pull request with your changes.
+Quarto-based documentation for MolViewStories with MolViewSpec extension support.
 
-Requires Python 3.x to build. To develop locally, from this folder install `mkdocs`:
+## Quick Start
 
 ```bash
-pip install mkdocs-material
+# Install Quarto (one-time)
+brew install quarto
+
+# Install MolViewSpec extension (one-time)
+cd docs
+quarto add zachcp/molviewspec-quarto
+
+# Preview with live reload
+quarto preview docs
 ```
 
-and then serve the docs:
+Open http://localhost:4200 in your browser.
+
+## Directory Structure
 
 ```
-mkdocs serve
+docs/
+├── _quarto.yml       # Quarto configuration
+├── _extensions/      # MolViewSpec extension
+├── *.qmd             # Documentation pages
+├── img/              # Images
+├── _site/            # Built site (gitignored)
+└── README.md         # This file
 ```
+
+## Commands
+
+From project root:
+
+```bash
+# Preview
+quarto preview docs
+
+# Build
+quarto render docs
+
+# Publish
+quarto publish gh-pages docs
+```
+
+Or from `docs/` directory:
+
+```bash
+cd docs
+quarto preview
+quarto render
+quarto publish gh-pages
+```
+
+## Configuration
+
+- **File**: `_quarto.yml`
+- **Navigation**: Left-hand docked sidebar
+- **Theme**: Cosmo
+- **Features**: Search, TOC, code copying, MolViewSpec rendering
+
+## Resources
+
+- [Quarto Documentation](https://quarto.org/)
+- [MolViewSpec Extension](https://github.com/zachcp/molviewspec-quarto)
