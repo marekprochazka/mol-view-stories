@@ -20,6 +20,8 @@ import {
   TransformFields,
   LabelFields,
   PrimitivesFields,
+  OpacityFields,
+  CameraFields,
 } from './components/fields';
 
 interface OperationRowProps {
@@ -106,6 +108,12 @@ export function OperationRow({
 
       case 'primitives':
         return <PrimitivesFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'opacity':
+        return <OpacityFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'camera':
+        return <CameraFields params={node.params} onChange={handleParamsChange} />;
 
       default:
         return null;

@@ -7,3 +7,5 @@ export { ColorFields } from './ColorFields';
 export { TransformFields } from './TransformFields';
 export { LabelFields } from './LabelFields';
 export { PrimitivesFields } from './PrimitivesFields';
+export { OpacityFields } from './OpacityFields';
+export { CameraFields } from './CameraFields';
