@@ -6,6 +6,16 @@ interface RepresentationFieldsProps {
   onChange: (params: Record<string, unknown>) => void;
 }
 
+// MVS spec representation types
+const REPRESENTATION_TYPES = [
+  { value: 'cartoon', label: 'Cartoon' },
+  { value: 'ball_and_stick', label: 'Ball and Stick' },
+  { value: 'spacefill', label: 'Spacefill' },
+  { value: 'surface', label: 'Surface' },
+  { value: 'isosurface', label: 'Isosurface' },
+  { value: 'carbohydrate', label: 'Carbohydrate' },
+] as const;
+
 export function RepresentationFields({ params, onChange }: RepresentationFieldsProps) {
   const type = (params.type as string) || '';
 
@@ -17,11 +27,11 @@ export function RepresentationFields({ params, onChange }: RepresentationFieldsP
           <SelectValue placeholder='Select' />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value='cartoon'>Cartoon</SelectItem>
-          <SelectItem value='ball-and-stick'>Ball and Stick</SelectItem>
-          <SelectItem value='surface'>Surface</SelectItem>
-          <SelectItem value='spacefill'>Spacefill</SelectItem>
-          <SelectItem value='ribbon'>Ribbon</SelectItem>
+          {REPRESENTATION_TYPES.map((rep) => (
+            <SelectItem key={rep.value} value={rep.value}>
+              {rep.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

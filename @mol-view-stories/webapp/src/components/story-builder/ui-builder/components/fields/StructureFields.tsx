@@ -6,6 +6,14 @@ interface StructureFieldsProps {
   onChange: (params: Record<string, unknown>) => void;
 }
 
+// MVS spec structure types
+const STRUCTURE_TYPES = [
+  { value: 'model', label: 'Model' },
+  { value: 'assembly', label: 'Assembly' },
+  { value: 'symmetry', label: 'Symmetry' },
+  { value: 'symmetry_mates', label: 'Symmetry Mates' },
+] as const;
+
 export function StructureFields({ params, onChange }: StructureFieldsProps) {
   const type = (params.type as string) || '';
 
@@ -17,8 +25,11 @@ export function StructureFields({ params, onChange }: StructureFieldsProps) {
           <SelectValue placeholder='Select' />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value='model'>Model</SelectItem>
-          <SelectItem value='assembly'>Assembly</SelectItem>
+          {STRUCTURE_TYPES.map((st) => (
+            <SelectItem key={st.value} value={st.value}>
+              {st.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

@@ -57,6 +57,10 @@ export function OperationRow({
     onUpdate({ params });
   };
 
+  const handleCustomChange = (custom: Record<string, unknown> | undefined) => {
+    onUpdate({ custom });
+  };
+
   const handleRefChange = (value: string) => {
     onUpdate({ ref: value });
   };
@@ -85,7 +89,14 @@ export function OperationRow({
         return <RepresentationFields params={node.params} onChange={handleParamsChange} />;
 
       case 'color':
-        return <ColorFields params={node.params} onChange={handleParamsChange} />;
+        return (
+          <ColorFields
+            params={node.params}
+            onChange={handleParamsChange}
+            custom={node.custom}
+            onCustomChange={handleCustomChange}
+          />
+        );
 
       case 'transform':
         return <TransformFields params={node.params} onChange={handleParamsChange} />;
