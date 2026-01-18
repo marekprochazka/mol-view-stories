@@ -1,6 +1,6 @@
 'use client';
 
-import { ActiveSceneIdAtom, UIBuilderNodesAtom } from '@/app/appstate';
+import { ActiveSceneIdAtom, UIBuilderConstantsAtom, UIBuilderNodesAtom } from '@/app/appstate';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,11 +15,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { ASTFactory } from '@mol-view-stories/state-builder/src/compiler/ast/factory';
 import { CodeGenerator } from '@mol-view-stories/state-builder/src/compiler/codegen/generator';
 import { useAtom, useAtomValue } from 'jotai';
-import { UploadIcon, PlusIcon } from 'lucide-react';
+import { UploadIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
-import { createEmptyNode, UINode } from '@mol-view-stories/state-builder/src';
+import { ConstantsSection } from './ConstantsSection';
+import {
+  createEmptyNode,
+  createEmptyConstant,
+  UINode,
+  ConstantDefinition,
+} from '@mol-view-stories/state-builder/src';
 import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 
 export interface UIBuilderProps {
@@ -59,6 +65,8 @@ function mvsTreeToUINodes(tree: MVSTree): UINode[] {
 
 export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
   const activeSceneId = useAtomValue(ActiveSceneIdAtom);
+
+  // Nodes state (per-scene)
   const [allNodes, setAllNodes] = useAtom(UIBuilderNodesAtom);
   const sceneKey = activeSceneId || 'default';
   const nodes = (allNodes[sceneKey] || []) as UINode[];
@@ -66,8 +74,16 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
     setAllNodes({ ...allNodes, [sceneKey]: newNodes });
   };
 
+  // Constants state (per-scene)
+  const [allConstants, setAllConstants] = useAtom(UIBuilderConstantsAtom);
+  const constants = (allConstants[sceneKey] || []) as ConstantDefinition[];
+  const setConstants = (newConstants: ConstantDefinition[]) => {
+    setAllConstants({ ...allConstants, [sceneKey]: newConstants });
+  };
+
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
+  const [constantsExpanded, setConstantsExpanded] = useState(true);
 
   const addNode = () => {
     const newNode = createEmptyNode();
@@ -138,7 +154,7 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
     }),
   });
 
-  const generateCodeFromNodes = (nodesToGenerate: UINode[]) => {
+  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants) => {
     try {
       if (nodesToGenerate.length === 0) {
         toast.error('No nodes to generate code from. Add nodes or import an MVSTree first.');
@@ -162,10 +178,16 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
       // Pass directly to compiler
       const ast = ASTFactory.fromMVSData(mvsData);
 
+      // Filter out incomplete constants (no name or no entries)
+      const validConstants = constantsToInclude.filter(
+        (c) => c.name && c.entries.length > 0 && c.entries.some((e) => e.key)
+      );
+
       const generator = new CodeGenerator({
         includeSectionMarkers: true,
         builderVar: 'builder',
         includeComments: true,
+        constants: validConstants,
       });
 
       const code = generator.generate(ast);
@@ -270,8 +292,17 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
       </div>
 
       <div className='flex-1 min-h-0 overflow-y-auto space-y-2 pb-20'>
+        {/* Constants Section */}
+        <ConstantsSection
+          constants={constants}
+          expanded={constantsExpanded}
+          onToggleExpanded={() => setConstantsExpanded(!constantsExpanded)}
+          onConstantsChange={setConstants}
+        />
+
+        {/* Nodes Section */}
         {nodes.length === 0 ? (
-          <div className='flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-2'>
+          <div className='flex flex-col items-center justify-center h-32 text-muted-foreground text-sm gap-2 border rounded-md'>
             <p>No nodes yet.</p>
             <p>Click &quot;Import&quot; to load an MVSTree or &quot;Add&quot; to create a new node.</p>
           </div>
@@ -288,6 +319,7 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
               onCopy={() => copyNode(node.id)}
               onMoveUp={() => moveNodeUp(node.id)}
               onMoveDown={() => moveNodeDown(node.id)}
+              availableConstants={constants}
             />
           ))
         )}

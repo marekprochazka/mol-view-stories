@@ -7,6 +7,7 @@ interface StructureFieldsProps {
 }
 
 // MVS spec structure types
+// TODO: might be able to define directly from spec instead of hardcoding
 const STRUCTURE_TYPES = [
   { value: 'model', label: 'Model' },
   { value: 'assembly', label: 'Assembly' },

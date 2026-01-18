@@ -199,4 +199,9 @@ export interface SharedStoryState {
 export const IsDirtyAtom = atom<boolean>(false);
 
 // UIBuilder State - keyed by scene ID for per-scene persistence
+// This is ephemeral working state (not saved to session files)
 export const UIBuilderNodesAtom = atom<Record<string, unknown[]>>({});
+
+// UIBuilder Constants - keyed by scene ID for per-scene persistence
+// Stores constant definitions (colors, URLs, etc.) that can be referenced in builder nodes
+export const UIBuilderConstantsAtom = atom<Record<string, unknown[]>>({});

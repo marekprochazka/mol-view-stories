@@ -1,4 +1,5 @@
 import { ASTNode } from '../ast/types.ts';
+import { isConstantRef } from '../../types/ui-builder';
 
 export class ParamFormatter {
   static formatParams(node: ASTNode): string {
@@ -34,6 +35,11 @@ export class ParamFormatter {
   }
 
   private static formatValue(value: any, depth: number): string {
+    // Handle ConstantRef - output as unquoted identifier (e.g., Colors.primary)
+    if (isConstantRef(value)) {
+      return `${value.constantName}.${value.entryKey}`;
+    }
+
     if (value === null) return 'null';
     if (value === undefined) return 'undefined';
 

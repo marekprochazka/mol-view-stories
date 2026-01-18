@@ -7,6 +7,7 @@ interface RepresentationFieldsProps {
 }
 
 // MVS spec representation types
+// TODO: might be able to define directly from spec instead of hardcoding
 const REPRESENTATION_TYPES = [
   { value: 'cartoon', label: 'Cartoon' },
   { value: 'ball_and_stick', label: 'Ball and Stick' },

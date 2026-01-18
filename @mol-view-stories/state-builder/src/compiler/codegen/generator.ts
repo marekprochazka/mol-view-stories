@@ -3,6 +3,8 @@ import { AST, ASTNode } from '../ast/types';
 import { CodeGenContext } from './context';
 import { NodeMethodMapper } from './mappings';
 import { ParamFormatter } from './formatters';
+import type { ConstantDefinition, ConstantRef } from '../../types/ui-builder';
+import { isConstantRef } from '../../types/ui-builder';
 
 export interface GeneratorOptions {
   /**
@@ -22,6 +24,11 @@ export interface GeneratorOptions {
    * @default false
    */
   includeComments?: boolean;
+
+  /**
+   * Constant definitions to include at the top of generated code
+   */
+  constants?: ConstantDefinition[];
 }
 
 export class CodeGenerator {
@@ -35,6 +42,7 @@ export class CodeGenerator {
       includeSectionMarkers: options.includeSectionMarkers ?? true,
       builderVar: options.builderVar ?? 'builder',
       includeComments: options.includeComments ?? false,
+      constants: options.constants ?? [],
     };
   }
 
@@ -49,6 +57,9 @@ export class CodeGenerator {
       this.emit('// ============================================');
       this.emit('');
     }
+
+    // Generate constants first (if any)
+    this.generateConstants();
 
     // Generate code for root children
     this.generateNode(ast.root, this.options.builderVar);
@@ -126,7 +137,10 @@ export class CodeGenerator {
    */
   private getNodeDescription(node: ASTNode): string {
     switch (node.kind) {
-      case 'download': return `Download: ${node.getParam('url')}`;
+      case 'download': {
+        const url = node.getParam('url');
+        return `Download: ${this.formatParamForComment(url)}`;
+      }
       case 'parse': return `Parse as ${node.getParam('format')}`;
       case 'structure': return `Structure: ${node.getParam('type')}`;
       case 'component': return 'Component';
@@ -135,6 +149,71 @@ export class CodeGenerator {
       case 'primitives': return 'Primitives group';
       default: return node.kind;
     }
+  }
+
+  /**
+   * Format a parameter value for use in a comment
+   */
+  private formatParamForComment(value: unknown): string {
+    if (isConstantRef(value)) {
+      return `${value.constantName}.${value.entryKey}`;
+    }
+    return String(value);
+  }
+
+  /**
+   * Generate constant declarations at the top of the output
+   */
+  private generateConstants(): void {
+    const constants = this.options.constants;
+    if (!constants || constants.length === 0) {
+      return;
+    }
+
+    if (this.options.includeComments) {
+      this.emit('// Constants');
+    }
+
+    for (const constant of constants) {
+      if (!constant.name || constant.entries.length === 0) {
+        continue; // Skip unnamed or empty constants
+      }
+
+      const entries = constant.entries
+        .filter(e => e.key) // Skip entries without keys
+        .map(e => `  ${this.formatConstantKey(e.key)}: '${this.escapeString(e.value)}'`)
+        .join(',\n');
+
+      if (entries) {
+        // Add JSDoc type annotation for color constants to avoid editor type errors
+        if (constant.type === 'colors') {
+          this.emit('/** @type {Record<string, ColorT>} */');
+        }
+        this.emit(`const ${constant.name} = {`);
+        this.emit(entries);
+        this.emit(`};`);
+        this.emit('');
+      }
+    }
+  }
+
+  /**
+   * Format a constant key (quote if necessary)
+   */
+  private formatConstantKey(key: string): string {
+    return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `'${key}'`;
+  }
+
+  /**
+   * Escape a string value for JavaScript output
+   */
+  private escapeString(value: string): string {
+    return value
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\t/g, '\\t');
   }
 
   private emit(line: string): void {

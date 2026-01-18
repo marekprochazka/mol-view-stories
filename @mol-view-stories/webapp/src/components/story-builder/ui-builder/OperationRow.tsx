@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { UINode } from '@mol-view-stories/state-builder/src';
+import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -35,6 +35,7 @@ interface OperationRowProps {
   depth?: number;
   isLast?: boolean;
   isFirst?: boolean;
+  availableConstants?: ConstantDefinition[];
 }
 
 export function OperationRow({
@@ -48,6 +49,7 @@ export function OperationRow({
   depth = 0,
   isLast = false,
   isFirst = false,
+  availableConstants = [],
 }: OperationRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -76,7 +78,13 @@ export function OperationRow({
 
     switch (node.kind) {
       case 'download':
-        return <DownloadFields params={node.params} onChange={handleParamsChange} />;
+        return (
+          <DownloadFields
+            params={node.params}
+            onChange={handleParamsChange}
+            availableConstants={availableConstants}
+          />
+        );
 
       case 'parse':
         return <ParseFields params={node.params} onChange={handleParamsChange} />;
@@ -97,6 +105,7 @@ export function OperationRow({
             onChange={handleParamsChange}
             custom={node.custom}
             onCustomChange={handleCustomChange}
+            availableConstants={availableConstants}
           />
         );
 
@@ -175,6 +184,7 @@ export function OperationRow({
               depth={depth + 1}
               isFirst={index === 0}
               isLast={index === node.children!.length - 1}
+              availableConstants={availableConstants}
               onUpdate={(updates) => {
                 const newChildren = [...node.children!];
                 newChildren[index] = { ...child, ...updates };
