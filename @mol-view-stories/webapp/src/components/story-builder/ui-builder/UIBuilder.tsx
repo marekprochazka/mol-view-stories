@@ -1,14 +1,25 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { ASTFactory } from '@mol-view-stories/state-builder/src/compiler/ast/factory';
 import { CodeGenerator } from '@mol-view-stories/state-builder/src/compiler/codegen/generator';
-import { PlusIcon } from 'lucide-react';
+import { UploadIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
 import { createEmptyNode, UINode } from '@mol-view-stories/state-builder/src';
 import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
+
 export interface UIBuilderProps {
   /** Callback when code is generated - receives the generated JavaScript code */
   onCodeGenerated?: (code: string) => void;
@@ -44,175 +55,10 @@ function mvsTreeToUINodes(tree: MVSTree): UINode[] {
   return children.map((node, i) => addIdsToMVSNode(node, `${i}_`));
 }
 
-// Example MVS JSON data - can be pasted directly without IDs
-const EXAMPLE_MVS_NODES: MVSTree = {
-
-    "kind": "root",
-    "children": [
-      {
-        "kind": "download",
-        "params": {
-          "url": "https://www.ebi.ac.uk/pdbe/entry-files/download/1opl.bcif"
-        },
-        "children": [
-          {
-            "kind": "parse",
-            "params": {
-              "format": "bcif"
-            },
-            "children": [
-              {
-                "kind": "structure",
-                "params": {
-                  "type": "model"
-                },
-                "children": [
-                  {
-                    "kind": "transform",
-                    "params": {
-                      "rotation": [
-                        -0.6321036327, 0.3450463255, 0.6938213248, -0.6288677634, -0.7515716885, -0.1991615756,
-                        0.4527364948, -0.5622126202, 0.6920597055
-                      ],
-                      "translation": [36.3924122492, 118.2516908402, -26.4992054179]
-                    }
-                  },
-                  {
-                    "kind": "component",
-                    "params": {
-                      "selector": {
-                        "label_asym_id": "A"
-                      }
-                    },
-                    "children": [
-                      {
-                        "kind": "representation",
-                        "params": {
-                          "type": "cartoon"
-                        },
-                        "children": [
-                          {
-                            "kind": "color",
-                            "params": {
-                              "color": "#4577B2"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "kind": "label",
-                        "params": {
-                          "text": "ABL Kinase"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "kind": "component",
-                    "params": {
-                      "selector": {
-                        "label_asym_id": "C"
-                      }
-                    },
-                    "children": [
-                      {
-                        "kind": "representation",
-                        "params": {
-                          "type": "ball_and_stick"
-                        },
-                        "children": [
-                          {
-                            "kind": "color",
-                            "params": {
-                              "color": "#4577B2"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "kind": "component",
-                    "params": {
-                      "selector": {
-                        "label_asym_id": "D"
-                      }
-                    },
-                    "children": [
-                      {
-                        "kind": "representation",
-                        "params": {
-                          "type": "surface"
-                        },
-                        "children": [
-                          {
-                            "kind": "color",
-                            "params": {},
-                            "custom": {
-                              "molstar_color_theme_name": "element-symbol",
-                              "molstar_color_theme_params": {
-                                "carbonColor": {
-                                  "name": "uniform",
-                                  "params": {
-                                    "value": 4552626
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "kind": "opacity",
-                            "params": {
-                              "opacity": 0.33
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "kind": "representation",
-                        "params": {
-                          "type": "ball_and_stick"
-                        },
-                        "children": [
-                          {
-                            "kind": "color",
-                            "params": {},
-                            "custom": {
-                              "molstar_color_theme_name": "element-symbol",
-                              "molstar_color_theme_params": {
-                                "carbonColor": {
-                                  "name": "uniform",
-                                  "params": {
-                                    "value": 4552626
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "kind": "camera",
-        "params": {
-          "position": [79.46831913851136, 66.05809711216442, 20.82033041314537],
-          "target": [0.36, 55.32, 21.8],
-          "up": [-0.01, 0.01, -1]
-        }
-      }
-    ]
-  }
-;
-
 export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
-  const [nodes, setNodes] = useState<UINode[]>(() => mvsTreeToUINodes(EXAMPLE_MVS_NODES));
+  const [nodes, setNodes] = useState<UINode[]>([]);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importJson, setImportJson] = useState('');
 
   const addNode = () => {
     const newNode = createEmptyNode();
@@ -283,14 +129,19 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
     }),
   });
 
-  const generateCode = () => {
+  const generateCodeFromNodes = (nodesToGenerate: UINode[]) => {
     try {
+      if (nodesToGenerate.length === 0) {
+        toast.error('No nodes to generate code from. Add nodes or import an MVSTree first.');
+        return;
+      }
+
       // Build MVS data structure with root wrapper
       const mvsData = {
         root: {
           kind: 'root' as const,
           params: {},
-          children: nodes.map(stripIds),
+          children: nodesToGenerate.map(stripIds),
         },
         metadata: {
           timestamp: new Date().toISOString(),
@@ -325,11 +176,80 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
     }
   };
 
+  const generateCode = () => {
+    generateCodeFromNodes(nodes);
+  };
+
+  const handleImport = () => {
+    try {
+      const parsed = JSON.parse(importJson);
+
+      // Check if it's a valid MVSTree (has kind: 'root')
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Invalid JSON: expected an object');
+      }
+
+      if (parsed.kind !== 'root') {
+        throw new Error('Invalid MVSTree: root node must have kind "root"');
+      }
+
+      const mvsTree = parsed as MVSTree;
+      const uiNodes = mvsTreeToUINodes(mvsTree);
+
+      if (uiNodes.length === 0) {
+        throw new Error('MVSTree has no children nodes');
+      }
+
+      setNodes(uiNodes);
+      setImportDialogOpen(false);
+      setImportJson('');
+      toast.success('MVSTree imported successfully!');
+
+      // Auto-generate code after import
+      setTimeout(() => {
+        generateCodeFromNodes(uiNodes);
+      }, 0);
+    } catch (error) {
+      toast.error(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
   return (
     <div className='flex flex-col gap-2 h-full p-2'>
       <div className='flex items-center justify-between pb-2 border-b'>
         <h3 className='text-sm font-medium'>Visual Builder</h3>
         <div className='flex gap-2'>
+          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size='sm' variant='outline'>
+                <UploadIcon className='size-4 mr-1' />
+                Import
+              </Button>
+            </DialogTrigger>
+            <DialogContent className='sm:max-w-2xl'>
+              <DialogHeader>
+                <DialogTitle>Import MVSTree JSON</DialogTitle>
+                <DialogDescription>
+                  Paste an MVSTree JSON object with kind &quot;root&quot; to load it into the visual builder.
+                </DialogDescription>
+              </DialogHeader>
+              <Textarea
+                className='min-h-[300px] font-mono text-xs'
+                placeholder='{"kind": "root", "children": [...]}'
+                value={importJson}
+                onChange={(e) => setImportJson(e.target.value)}
+              />
+              <DialogFooter>
+                <Button variant='outline' onClick={() => setImportDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleImport} disabled={!importJson.trim()}>
+                  Import
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Button onClick={addNode} size='sm' variant='outline'>
             <PlusIcon className='size-4 mr-1' />
             Add
@@ -341,20 +261,27 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
       </div>
 
       <div className='flex-1 min-h-0 overflow-y-auto space-y-2 pb-20'>
-        {nodes.map((node, index) => (
-          <OperationRow
-            key={node.id}
-            node={node}
-            isFirst={index === 0}
-            isLast={index === nodes.length - 1}
-            onUpdate={(updates) => updateNode(node.id, updates)}
-            onRemove={() => removeNode(node.id)}
-            onAddChild={() => addChildToNode(node.id)}
-            onCopy={() => copyNode(node.id)}
-            onMoveUp={() => moveNodeUp(node.id)}
-            onMoveDown={() => moveNodeDown(node.id)}
-          />
-        ))}
+        {nodes.length === 0 ? (
+          <div className='flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-2'>
+            <p>No nodes yet.</p>
+            <p>Click &quot;Import&quot; to load an MVSTree or &quot;Add&quot; to create a new node.</p>
+          </div>
+        ) : (
+          nodes.map((node, index) => (
+            <OperationRow
+              key={node.id}
+              node={node}
+              isFirst={index === 0}
+              isLast={index === nodes.length - 1}
+              onUpdate={(updates) => updateNode(node.id, updates)}
+              onRemove={() => removeNode(node.id)}
+              onAddChild={() => addChildToNode(node.id)}
+              onCopy={() => copyNode(node.id)}
+              onMoveUp={() => moveNodeUp(node.id)}
+              onMoveDown={() => moveNodeDown(node.id)}
+            />
+          ))
+        )}
       </div>
     </div>
   );
