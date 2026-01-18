@@ -197,3 +197,6 @@ export interface SharedStoryState {
 
 // Unsaved Changes Tracking Atoms
 export const IsDirtyAtom = atom<boolean>(false);
+
+// UIBuilder State - keyed by scene ID for per-scene persistence
+export const UIBuilderNodesAtom = atom<Record<string, unknown[]>>({});

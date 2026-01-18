@@ -1,0 +1,115 @@
+{
+  "kind": "root",
+  "children": [
+    {
+      "kind": "download",
+      "params": {
+        "url": "2SOD.autogrid.dx"
+      },
+      "children": [
+        {
+          "kind": "parse",
+          "params": {
+            "format": "dx"
+          },
+          "children": [
+            {
+              "kind": "volume",
+              "params": {},
+              "ref": "volume",
+              "children": [
+                {
+                  "kind": "transform",
+                  "params": {
+                    "matrix": [
+                      0.6489301718429044,
+                      -0.24657559614309932,
+                      -0.7197847614463981,
+                      0,
+                      -0.7588655826348933,
+                      -0.2780040083943405,
+                      -0.5889285032057003,
+                      0,
+                      -0.05488765722798661,
+                      0.928393359402456,
+                      -0.3675229206395674,
+                      0,
+                      30.725297652508615,
+                      11.347085705350262,
+                      -14.056137785779203,
+                      1
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "canvas",
+      "params": {},
+      "custom": {
+        "molstar_postprocessing": {
+          "background": {
+            "name": "image",
+            "params": {
+              "source": {
+                "name": "url",
+                "params": "Calibrate.png"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "primitives",
+      "params": {
+        "label_attachment": "bottom-left",
+        "label_show_tether": false,
+        "label_tether_length": 2,
+        "label_background_color": "black"
+      },
+      "custom": {
+        "molstar_markdown_commands": {
+          "apply-snapshot": "title",
+          "play-audio": "part_01.mp3"
+        }
+      },
+      "children": [
+        {
+          "kind": "primitive",
+          "params": {
+            "kind": "label",
+            "position": [0, 0, 0],
+            "text": "Start Tour",
+            "label_size": 50,
+            "label_offset": 2
+          }
+        }
+      ]
+    },
+    {
+      "kind": "camera",
+      "params": {
+        "position": [
+          245.28563868899636,
+          264.3855846494206,
+          277.94958945695754
+        ],
+        "target": [
+          66.86887932887036,
+          190.77560838821594,
+          -73.83382898399368
+        ],
+        "up": [
+          0.010051665697544392,
+          0.9777176570085436,
+          -0.2096834451987366
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import { ActiveSceneIdAtom, UIBuilderNodesAtom } from '@/app/appstate';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { ASTFactory } from '@mol-view-stories/state-builder/src/compiler/ast/factory';
 import { CodeGenerator } from '@mol-view-stories/state-builder/src/compiler/codegen/generator';
+import { useAtom, useAtomValue } from 'jotai';
 import { UploadIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -56,7 +58,14 @@ function mvsTreeToUINodes(tree: MVSTree): UINode[] {
 }
 
 export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
-  const [nodes, setNodes] = useState<UINode[]>([]);
+  const activeSceneId = useAtomValue(ActiveSceneIdAtom);
+  const [allNodes, setAllNodes] = useAtom(UIBuilderNodesAtom);
+  const sceneKey = activeSceneId || 'default';
+  const nodes = (allNodes[sceneKey] || []) as UINode[];
+  const setNodes = (newNodes: UINode[]) => {
+    setAllNodes({ ...allNodes, [sceneKey]: newNodes });
+  };
+
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
 

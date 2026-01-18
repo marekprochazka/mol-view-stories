@@ -12,7 +12,7 @@ interface SelectorHelperProps {
  * Placeholder component for selector helper
  * TODO: Implement full selector helper UI with chain, residue, ligand tabs
  */
-export function SelectorHelper({ onSelect, selectorType }: SelectorHelperProps) {
+export function SelectorHelper({ onSelect: _onSelect, selectorType }: SelectorHelperProps) {
   // Placeholder implementation - just a button for now
   return (
     <Button

@@ -31,6 +31,7 @@ export {
   ActiveSceneAtom,
   StoryAssetsAtom,
   OpenSessionAtom,
+  UIBuilderNodesAtom,
 } from './state/atoms';
 
 // Helper functions for state management

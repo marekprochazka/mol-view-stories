@@ -28,7 +28,7 @@ export function TransformFields({ params, onChange }: TransformFieldsProps) {
   const handleRotationChange = (value: string) => {
     if (!value.trim()) {
       // Clear rotation if empty
-      const { rotation: _, ...rest } = params;
+      const { rotation: _rotation, ...rest } = params;
       onChange(rest);
       return;
     }
