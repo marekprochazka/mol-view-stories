@@ -195,13 +195,18 @@ export function OperationRow({
                 onUpdate({ children: newChildren });
               }}
               onAddChild={() => {
-                const newChild: UINode = {
+                const newGrandChild: UINode = {
                   id: Date.now().toString() + Math.random(),
                   kind: '',
                   params: {},
                   children: [],
                 };
-                onUpdate({ children: [...(node.children || []), newChild] });
+                const newChildren = [...node.children!];
+                newChildren[index] = {
+                  ...child,
+                  children: [...(child.children || []), newGrandChild],
+                };
+                onUpdate({ children: newChildren });
               }}
               onCopy={() => {
                 const copiedChild = JSON.parse(JSON.stringify(child));
