@@ -1,13 +1,18 @@
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
+import { MVS_KIND_LABELS, MVS_SELECTABLE_KINDS } from '@mol-view-stories/state-builder/src';
 
 interface KindSelectProps {
   value: MVSKind | '';
   onChange: (kind: MVSKind) => void;
+  allowedKinds?: readonly MVSKind[];
 }
 
-export function KindSelect({ value, onChange }: KindSelectProps) {
+export function KindSelect({ value, onChange, allowedKinds }: KindSelectProps) {
+  // Use allowed kinds if provided, otherwise show all selectable kinds
+  const kindsToShow = allowedKinds ?? MVS_SELECTABLE_KINDS;
+
   return (
     <div className='w-40'>
       <Label className='text-xs'>Kind</Label>
@@ -16,24 +21,11 @@ export function KindSelect({ value, onChange }: KindSelectProps) {
           <SelectValue placeholder='Select kind' />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value='download'>Download</SelectItem>
-          <SelectItem value='parse'>Parse</SelectItem>
-          <SelectItem value='structure'>Structure</SelectItem>
-          <SelectItem value='component'>Component</SelectItem>
-          <SelectItem value='component_from_uri'>Component From URI</SelectItem>
-          <SelectItem value='component_from_source'>Component From Source</SelectItem>
-          <SelectItem value='representation'>Representation</SelectItem>
-          <SelectItem value='color'>Color</SelectItem>
-          <SelectItem value='opacity'>Opacity</SelectItem>
-          <SelectItem value='transform'>Transform</SelectItem>
-          <SelectItem value='label'>Label</SelectItem>
-          <SelectItem value='tooltip'>Tooltip</SelectItem>
-          <SelectItem value='primitives'>Primitives</SelectItem>
-          <SelectItem value='primitive'>Primitive</SelectItem>
-          <SelectItem value='clip'>Clip</SelectItem>
-          <SelectItem value='focus'>Focus</SelectItem>
-          <SelectItem value='camera'>Camera</SelectItem>
-          <SelectItem value='canvas'>Canvas</SelectItem>
+          {kindsToShow.map((kind) => (
+            <SelectItem key={kind} value={kind}>
+              {MVS_KIND_LABELS[kind] ?? kind}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

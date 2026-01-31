@@ -25,6 +25,7 @@ import {
   createEmptyConstant,
   UINode,
   ConstantDefinition,
+  getValidChildren,
 } from '@mol-view-stories/state-builder/src';
 import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 
@@ -320,6 +321,7 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
               onMoveUp={() => moveNodeUp(node.id)}
               onMoveDown={() => moveNodeDown(node.id)}
               availableConstants={constants}
+              allowedKinds={getValidChildren('root')}
             />
           ))
         )}

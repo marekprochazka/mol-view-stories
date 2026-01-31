@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
+import { getValidChildren, isTerminalKind } from '@mol-view-stories/state-builder/src';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -36,6 +37,7 @@ interface OperationRowProps {
   isLast?: boolean;
   isFirst?: boolean;
   availableConstants?: ConstantDefinition[];
+  allowedKinds?: readonly MVSKind[];
 }
 
 export function OperationRow({
@@ -50,6 +52,7 @@ export function OperationRow({
   isLast = false,
   isFirst = false,
   availableConstants = [],
+  allowedKinds,
 }: OperationRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -69,7 +72,8 @@ export function OperationRow({
     onUpdate({ ref: value });
   };
 
-  const canHaveChildren = ['structure', 'component', 'representation', 'primitives', 'download', 'parse'].includes(node.kind);
+  const canHaveChildren = !isTerminalKind(node.kind);
+  const validChildKinds = getValidChildren(node.kind);
 
   const renderDynamicFields = () => {
     if (!node.params) {
@@ -147,7 +151,7 @@ export function OperationRow({
             </Button>
           )}
 
-          <KindSelect value={node.kind} onChange={handleKindChange} />
+          <KindSelect value={node.kind} onChange={handleKindChange} allowedKinds={allowedKinds} />
 
           {renderDynamicFields()}
 
@@ -185,6 +189,7 @@ export function OperationRow({
               isFirst={index === 0}
               isLast={index === node.children!.length - 1}
               availableConstants={availableConstants}
+              allowedKinds={validChildKinds}
               onUpdate={(updates) => {
                 const newChildren = [...node.children!];
                 newChildren[index] = { ...child, ...updates };
