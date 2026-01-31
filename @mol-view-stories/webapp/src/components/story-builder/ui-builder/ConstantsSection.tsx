@@ -8,7 +8,6 @@ import {
   ConstantDefinition,
   ConstantEntry,
   ConstantType,
-  createEmptyConstant,
 } from '@mol-view-stories/state-builder/src';
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon, XIcon } from 'lucide-react';
 
@@ -25,11 +24,6 @@ export function ConstantsSection({
   onToggleExpanded,
   onConstantsChange,
 }: ConstantsSectionProps) {
-  const addConstant = () => {
-    const newConstant = createEmptyConstant('colors');
-    onConstantsChange([...constants, newConstant]);
-  };
-
   const updateConstant = (id: string, updates: Partial<ConstantDefinition>) => {
     onConstantsChange(
       constants.map((c) => (c.id === id ? { ...c, ...updates } : c))
@@ -74,30 +68,16 @@ export function ConstantsSection({
     <div className='border rounded-md'>
       {/* Header */}
       <div
-        className='flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50'
+        className='flex items-center gap-2 p-2 cursor-pointer hover:bg-muted/50'
         onClick={onToggleExpanded}
       >
-        <div className='flex items-center gap-2'>
-          {expanded ? (
-            <ChevronDownIcon className='size-4' />
-          ) : (
-            <ChevronRightIcon className='size-4' />
-          )}
-          <span className='text-sm font-medium'>Constants</span>
-          <span className='text-xs text-muted-foreground'>({constants.length})</span>
-        </div>
-        <Button
-          size='sm'
-          variant='ghost'
-          onClick={(e) => {
-            e.stopPropagation();
-            addConstant();
-          }}
-          className='h-7'
-        >
-          <PlusIcon className='size-4 mr-1' />
-          Add
-        </Button>
+        {expanded ? (
+          <ChevronDownIcon className='size-4' />
+        ) : (
+          <ChevronRightIcon className='size-4' />
+        )}
+        <span className='text-sm font-medium'>Constants</span>
+        <span className='text-xs text-muted-foreground'>({constants.length})</span>
       </div>
 
       {/* Content */}

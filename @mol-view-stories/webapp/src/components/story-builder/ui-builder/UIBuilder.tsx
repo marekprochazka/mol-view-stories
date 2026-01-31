@@ -15,7 +15,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ASTFactory } from '@mol-view-stories/state-builder/src/compiler/ast/factory';
 import { CodeGenerator } from '@mol-view-stories/state-builder/src/compiler/codegen/generator';
 import { useAtom, useAtomValue } from 'jotai';
-import { UploadIcon, PlusIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { UploadIcon, PlusIcon, ChevronDownIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
@@ -90,6 +96,15 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
   const addNode = () => {
     const newNode = createDownloadParseNodes();
     setNodes([...nodes, newNode]);
+  };
+
+  const addConstant = () => {
+    const newConstant = createEmptyConstant('colors');
+    setConstants([...constants, newConstant]);
+    // Expand constants section when adding
+    if (!constantsExpanded) {
+      setConstantsExpanded(true);
+    }
   };
 
   const updateNode = (id: string, updates: Partial<UINode>) => {
@@ -282,10 +297,23 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
             </DialogContent>
           </Dialog>
 
-          <Button onClick={addNode} size='sm' variant='outline'>
-            <PlusIcon className='size-4 mr-1' />
-            Add
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size='sm' variant='outline'>
+                <PlusIcon className='size-4 mr-1' />
+                Add
+                <ChevronDownIcon className='size-4 ml-1' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              <DropdownMenuItem onClick={addNode}>
+                Node
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={addConstant}>
+                Constant
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={generateCode} size='sm'>
             Generate Code
           </Button>
