@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
-import { getValidChildren, isTerminalKind } from '@mol-view-stories/state-builder/src';
+import { getValidChildren, isTerminalKind, countSubtreeNodes } from '@mol-view-stories/state-builder/src';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { detectCompositeSequence } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
@@ -55,6 +56,13 @@ export function OperationRow({
   allowedKinds,
 }: OperationRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'delete' | 'kindChange';
+    newKind?: MVSKind;
+  } | null>(null);
+
+  const childCount = node.children?.length || 0;
+  const subtreeCount = countSubtreeNodes(node);
 
   // Check if this node is the root of a composite sequence
   const compositeMatch = detectCompositeSequence(node);
@@ -80,7 +88,31 @@ export function OperationRow({
   }
 
   const handleKindChange = (kind: MVSKind) => {
-    onUpdate({ kind, params: {}, children: [] });
+    if (childCount > 0) {
+      setPendingAction({ type: 'kindChange', newKind: kind });
+    } else {
+      onUpdate({ kind, params: {}, children: [] });
+    }
+  };
+
+  const handleRemove = () => {
+    if (childCount > 0) {
+      setPendingAction({ type: 'delete' });
+    } else {
+      onRemove();
+    }
+  };
+
+  const handleConfirmAction = () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === 'delete') {
+      onRemove();
+    } else if (pendingAction.type === 'kindChange' && pendingAction.newKind) {
+      onUpdate({ kind: pendingAction.newKind, params: {}, children: [] });
+    }
+
+    setPendingAction(null);
   };
 
   const handleCompositeSelect = (compositeNode: UINode) => {
@@ -200,10 +232,24 @@ export function OperationRow({
             onMoveDown={onMoveDown}
             onAddChild={onAddChild}
             onCopy={onCopy}
-            onRemove={onRemove}
+            onRemove={handleRemove}
           />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingAction !== null}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        title={pendingAction?.type === 'delete' ? 'Delete Node?' : 'Change Kind?'}
+        description={
+          pendingAction?.type === 'delete'
+            ? `This will delete this node and ${subtreeCount} child node${subtreeCount !== 1 ? 's' : ''}. This cannot be undone.`
+            : `Changing the kind will delete ${subtreeCount} child node${subtreeCount !== 1 ? 's' : ''}. This cannot be undone.`
+        }
+        confirmText={pendingAction?.type === 'delete' ? 'Delete' : 'Change Kind'}
+        onConfirm={handleConfirmAction}
+        isDestructive
+      />
 
       {isExpanded && node.children && node.children.length > 0 && (
         <div className='mt-2 space-y-2'>

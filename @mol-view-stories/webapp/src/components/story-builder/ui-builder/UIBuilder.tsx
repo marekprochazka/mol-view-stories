@@ -97,7 +97,6 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
   };
 
   const removeNode = (id: string) => {
-    if (nodes.length === 1) return;
     setNodes(nodes.filter((node) => node.id !== id));
   };
 

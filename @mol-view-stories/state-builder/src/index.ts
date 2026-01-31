@@ -12,6 +12,7 @@ export {
   createEmptyConstant,
   createConstantRef,
   isConstantRef,
+  countSubtreeNodes,
 } from './types/ui-builder';
 
 // Export composite sequences

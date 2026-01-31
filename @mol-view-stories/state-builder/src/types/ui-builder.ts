@@ -151,3 +151,14 @@ export function createEmptyNode(kind: MVSKind | '' = ''): UINode {
 function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
+
+/**
+ * Count total nodes in a subtree (excluding the root node itself)
+ */
+export function countSubtreeNodes(node: UINode): number {
+  if (!node.children || node.children.length === 0) return 0;
+  return node.children.reduce(
+    (sum, child) => sum + 1 + countSubtreeNodes(child),
+    0
+  );
+}

@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
-import { createEmptyNode, MVS_KIND_LABELS } from '@mol-view-stories/state-builder/src';
+import { createEmptyNode, MVS_KIND_LABELS, countSubtreeNodes } from '@mol-view-stories/state-builder/src';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import type { CompositeSequence } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import { getCompositeValidChildren, DOWNLOAD_PARSE_SEQUENCE } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
@@ -48,6 +49,13 @@ export function CompositeRow({
   allowedKinds,
 }: CompositeRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'delete' | 'kindChange';
+    newKind?: MVSKind;
+  } | null>(null);
+
+  const childCount = exitNode.children?.length || 0;
+  const subtreeCount = countSubtreeNodes(exitNode);
 
   // Build the list of kinds for the select, including composite option
   // Filter out 'download' and 'parse' since they're represented by the composite
@@ -61,22 +69,49 @@ export function CompositeRow({
       // Already a composite, nothing to do
       return;
     }
-    // Convert to a regular node with the selected kind
-    onUpdate({
-      kind: value as MVSKind,
-      params: {},
-      children: [],
-      ref: undefined,
-    });
+    if (childCount > 0) {
+      setPendingAction({ type: 'kindChange', newKind: value as MVSKind });
+    } else {
+      // Convert to a regular node with the selected kind
+      onUpdate({
+        kind: value as MVSKind,
+        params: {},
+        children: [],
+        ref: undefined,
+      });
+    }
   };
 
-  // Handlers for the composite fields
+  const handleRemove = () => {
+    if (childCount > 0) {
+      setPendingAction({ type: 'delete' });
+    } else {
+      onRemove();
+    }
+  };
+
+  const handleConfirmAction = () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === 'delete') {
+      onRemove();
+    } else if (pendingAction.type === 'kindChange' && pendingAction.newKind) {
+      onUpdate({
+        kind: pendingAction.newKind,
+        params: {},
+        children: [],
+        ref: undefined,
+      });
+    }
+
+    setPendingAction(null);
+  };
+
   const handleDownloadParamsChange = (params: Record<string, unknown>) => {
     onUpdate({ params });
   };
 
   const handleParseParamsChange = (params: Record<string, unknown>) => {
-    // Update the parse node (first child of root)
     const updatedExitNode = { ...exitNode, params };
     onUpdate({
       children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
@@ -103,7 +138,6 @@ export function CompositeRow({
     }
   };
 
-  // Add child to the exit node (parse)
   const handleAddChild = () => {
     const newChild = createEmptyNode();
     const updatedExitNode = {
@@ -115,7 +149,6 @@ export function CompositeRow({
     });
   };
 
-  // Update a child of the exit node
   const handleUpdateChild = (childIndex: number, updates: Partial<UINode>) => {
     const currentChildren = exitNode.children || [];
     const updatedChildren = currentChildren.map((child, i) =>
@@ -127,7 +160,6 @@ export function CompositeRow({
     });
   };
 
-  // Remove a child from the exit node
   const handleRemoveChild = (childIndex: number) => {
     const currentChildren = exitNode.children || [];
     const updatedChildren = currentChildren.filter((_, i) => i !== childIndex);
@@ -137,7 +169,6 @@ export function CompositeRow({
     });
   };
 
-  // Add grandchild to a child of the exit node
   const handleAddGrandChild = (childIndex: number) => {
     const currentChildren = exitNode.children || [];
     const child = currentChildren[childIndex];
@@ -157,7 +188,6 @@ export function CompositeRow({
     });
   };
 
-  // Copy a child of the exit node
   const handleCopyChild = (childIndex: number) => {
     const currentChildren = exitNode.children || [];
     const child = currentChildren[childIndex];
@@ -174,7 +204,6 @@ export function CompositeRow({
     });
   };
 
-  // Move child up within exit node's children
   const handleMoveChildUp = (childIndex: number) => {
     if (childIndex === 0) return;
     const currentChildren = [...(exitNode.children || [])];
@@ -188,7 +217,6 @@ export function CompositeRow({
     });
   };
 
-  // Move child down within exit node's children
   const handleMoveChildDown = (childIndex: number) => {
     const currentChildren = exitNode.children || [];
     if (childIndex >= currentChildren.length - 1) return;
@@ -264,10 +292,24 @@ export function CompositeRow({
             onMoveDown={onMoveDown}
             onAddChild={handleAddChild}
             onCopy={onCopy}
-            onRemove={onRemove}
+            onRemove={handleRemove}
           />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingAction !== null}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        title={pendingAction?.type === 'delete' ? 'Delete Node?' : 'Change Kind?'}
+        description={
+          pendingAction?.type === 'delete'
+            ? `This will delete this node and ${subtreeCount} child node${subtreeCount !== 1 ? 's' : ''}. This cannot be undone.`
+            : `Changing the kind will delete ${subtreeCount} child node${subtreeCount !== 1 ? 's' : ''}. This cannot be undone.`
+        }
+        confirmText={pendingAction?.type === 'delete' ? 'Delete' : 'Change Kind'}
+        onConfirm={handleConfirmAction}
+        isDestructive
+      />
 
       {/* Children of parse node */}
       {isExpanded && hasChildren && (
