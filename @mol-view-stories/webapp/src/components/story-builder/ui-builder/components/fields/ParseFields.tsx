@@ -1,5 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PARSE_FORMATS, getActiveValues } from '@mol-view-stories/state-builder/src';
 
 interface ParseFieldsProps {
   params: Record<string, unknown>;
@@ -8,6 +9,7 @@ interface ParseFieldsProps {
 
 export function ParseFields({ params, onChange }: ParseFieldsProps) {
   const format = (params.format as string) || '';
+  const activeFormats = getActiveValues(PARSE_FORMATS);
 
   return (
     <div className='flex-1'>
@@ -17,9 +19,11 @@ export function ParseFields({ params, onChange }: ParseFieldsProps) {
           <SelectValue placeholder='Select' />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value='bcif'>BCIF</SelectItem>
-          <SelectItem value='mmcif'>mmCIF</SelectItem>
-          <SelectItem value='pdb'>PDB</SelectItem>
+          {activeFormats.map((fmt) => (
+            <SelectItem key={fmt.value} value={fmt.value}>
+              {fmt.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

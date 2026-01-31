@@ -6,6 +6,8 @@ import {
   ConstantRef,
   createConstantRef,
   isConstantRef,
+  MOLSTAR_COLOR_THEMES,
+  CARBON_COLOR_OPTIONS,
 } from '@mol-view-stories/state-builder/src';
 
 interface ColorFieldsProps {
@@ -15,22 +17,6 @@ interface ColorFieldsProps {
   onCustomChange?: (custom: Record<string, unknown> | undefined) => void;
   availableConstants?: ConstantDefinition[];
 }
-
-// TODO: might be possible to get dynamically from somewhere
-const MOLSTAR_COLOR_THEMES = [
-  { value: 'element-symbol', label: 'Element Symbol' },
-  { value: 'chain-id', label: 'Chain ID' },
-  { value: 'entity-id', label: 'Entity ID' },
-  { value: 'residue-name', label: 'Residue Name' },
-  { value: 'secondary-structure', label: 'Secondary Structure' },
-  { value: 'uniform', label: 'Uniform' },
-] as const;
-
-// TODO: might be possible to get dynamically from somewhere
-const CARBON_COLOR_OPTIONS = [
-  { value: 'element-symbol', label: 'Element Symbol' },
-  { value: 'uniform', label: 'Uniform' },
-] as const;
 
 type ColorMode = 'simple' | 'theme' | 'constant';
 

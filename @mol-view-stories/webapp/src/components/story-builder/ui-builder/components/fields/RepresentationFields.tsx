@@ -1,24 +1,15 @@
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { REPRESENTATION_TYPES, getActiveValues } from '@mol-view-stories/state-builder/src';
 
 interface RepresentationFieldsProps {
   params: Record<string, unknown>;
   onChange: (params: Record<string, unknown>) => void;
 }
 
-// MVS spec representation types
-// TODO: might be able to define directly from spec instead of hardcoding
-const REPRESENTATION_TYPES = [
-  { value: 'cartoon', label: 'Cartoon' },
-  { value: 'ball_and_stick', label: 'Ball and Stick' },
-  { value: 'spacefill', label: 'Spacefill' },
-  { value: 'surface', label: 'Surface' },
-  { value: 'isosurface', label: 'Isosurface' },
-  { value: 'carbohydrate', label: 'Carbohydrate' },
-] as const;
-
 export function RepresentationFields({ params, onChange }: RepresentationFieldsProps) {
   const type = (params.type as string) || '';
+  const activeTypes = getActiveValues(REPRESENTATION_TYPES);
 
   return (
     <div className='flex-1'>
@@ -28,7 +19,7 @@ export function RepresentationFields({ params, onChange }: RepresentationFieldsP
           <SelectValue placeholder='Select' />
         </SelectTrigger>
         <SelectContent>
-          {REPRESENTATION_TYPES.map((rep) => (
+          {activeTypes.map((rep) => (
             <SelectItem key={rep.value} value={rep.value}>
               {rep.label}
             </SelectItem>
