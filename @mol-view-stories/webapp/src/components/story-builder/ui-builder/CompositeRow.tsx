@@ -1,0 +1,296 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
+import { createEmptyNode, MVS_KIND_LABELS } from '@mol-view-stories/state-builder/src';
+import type { CompositeSequence } from '@mol-view-stories/state-builder/src/types/composite-sequences';
+import { getCompositeValidChildren, DOWNLOAD_PARSE_SEQUENCE } from '@mol-view-stories/state-builder/src/types/composite-sequences';
+import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
+import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { useState } from 'react';
+import { TreeLines } from './components/TreeLines';
+import { OperationActions } from './components/OperationActions';
+import { DownloadParseFields } from './components/fields/DownloadParseFields';
+import { OperationRow } from './OperationRow';
+
+interface CompositeRowProps {
+  sequence: CompositeSequence;
+  rootNode: UINode; // download
+  exitNode: UINode; // parse
+  onUpdate: (updates: Partial<UINode>) => void;
+  onRemove: () => void;
+  onAddChild?: () => void;
+  onCopy?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  depth?: number;
+  isFirst?: boolean;
+  isLast?: boolean;
+  availableConstants?: ConstantDefinition[];
+  allowedKinds?: readonly MVSKind[];
+}
+
+export function CompositeRow({
+  sequence,
+  rootNode,
+  exitNode,
+  onUpdate,
+  onRemove,
+  onCopy,
+  onMoveUp,
+  onMoveDown,
+  depth = 0,
+  isFirst = false,
+  isLast = false,
+  availableConstants = [],
+  allowedKinds,
+}: CompositeRowProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Build the list of kinds for the select, including composite option
+  // Filter out 'download' and 'parse' since they're represented by the composite
+  const regularKinds = (allowedKinds || []).filter(
+    (k) => k !== 'download' && k !== 'parse'
+  );
+
+  // Handle kind change - convert composite to regular node if different kind selected
+  const handleKindChange = (value: string) => {
+    if (value === DOWNLOAD_PARSE_SEQUENCE.selectValue) {
+      // Already a composite, nothing to do
+      return;
+    }
+    // Convert to a regular node with the selected kind
+    onUpdate({
+      kind: value as MVSKind,
+      params: {},
+      children: [],
+      ref: undefined,
+    });
+  };
+
+  // Handlers for the composite fields
+  const handleDownloadParamsChange = (params: Record<string, unknown>) => {
+    onUpdate({ params });
+  };
+
+  const handleParseParamsChange = (params: Record<string, unknown>) => {
+    // Update the parse node (first child of root)
+    const updatedExitNode = { ...exitNode, params };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  const handleRefChange = (ref: string) => {
+    if (ref) {
+      // Set refs on both nodes
+      const updatedExitNode = { ...exitNode, ref: ref + 'Parse' };
+      onUpdate({
+        ref,
+        children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+      });
+    } else {
+      // Remove refs from both nodes
+      const { ref: _rootRef, ...restRootProps } = rootNode;
+      const { ref: _exitRef, ...restExitProps } = exitNode;
+      const updatedExitNode = { ...restExitProps, ref: undefined };
+      onUpdate({
+        ref: undefined,
+        children: [updatedExitNode as UINode, ...(rootNode.children?.slice(1) || [])],
+      });
+    }
+  };
+
+  // Add child to the exit node (parse)
+  const handleAddChild = () => {
+    const newChild = createEmptyNode();
+    const updatedExitNode = {
+      ...exitNode,
+      children: [...(exitNode.children || []), newChild],
+    };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  // Update a child of the exit node
+  const handleUpdateChild = (childIndex: number, updates: Partial<UINode>) => {
+    const currentChildren = exitNode.children || [];
+    const updatedChildren = currentChildren.map((child, i) =>
+      i === childIndex ? { ...child, ...updates } : child
+    );
+    const updatedExitNode = { ...exitNode, children: updatedChildren };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  // Remove a child from the exit node
+  const handleRemoveChild = (childIndex: number) => {
+    const currentChildren = exitNode.children || [];
+    const updatedChildren = currentChildren.filter((_, i) => i !== childIndex);
+    const updatedExitNode = { ...exitNode, children: updatedChildren };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  // Add grandchild to a child of the exit node
+  const handleAddGrandChild = (childIndex: number) => {
+    const currentChildren = exitNode.children || [];
+    const child = currentChildren[childIndex];
+    if (!child) return;
+
+    const newGrandChild = createEmptyNode();
+    const updatedChild = {
+      ...child,
+      children: [...(child.children || []), newGrandChild],
+    };
+    const updatedChildren = currentChildren.map((c, i) =>
+      i === childIndex ? updatedChild : c
+    );
+    const updatedExitNode = { ...exitNode, children: updatedChildren };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  // Copy a child of the exit node
+  const handleCopyChild = (childIndex: number) => {
+    const currentChildren = exitNode.children || [];
+    const child = currentChildren[childIndex];
+    if (!child) return;
+
+    const copiedChild = JSON.parse(JSON.stringify(child));
+    copiedChild.id = Date.now().toString() + Math.random();
+    const updatedExitNode = {
+      ...exitNode,
+      children: [...currentChildren, copiedChild],
+    };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  // Move child up within exit node's children
+  const handleMoveChildUp = (childIndex: number) => {
+    if (childIndex === 0) return;
+    const currentChildren = [...(exitNode.children || [])];
+    [currentChildren[childIndex - 1], currentChildren[childIndex]] = [
+      currentChildren[childIndex],
+      currentChildren[childIndex - 1],
+    ];
+    const updatedExitNode = { ...exitNode, children: currentChildren };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  // Move child down within exit node's children
+  const handleMoveChildDown = (childIndex: number) => {
+    const currentChildren = exitNode.children || [];
+    if (childIndex >= currentChildren.length - 1) return;
+    const newChildren = [...currentChildren];
+    [newChildren[childIndex], newChildren[childIndex + 1]] = [
+      newChildren[childIndex + 1],
+      newChildren[childIndex],
+    ];
+    const updatedExitNode = { ...exitNode, children: newChildren };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  const validChildKinds = getCompositeValidChildren(sequence);
+  const hasChildren = exitNode.children && exitNode.children.length > 0;
+
+  return (
+    <div className='relative' style={{ marginLeft: depth > 0 ? '20px' : '0' }}>
+      <TreeLines depth={depth} isLast={isLast} />
+
+      <div className='border rounded-md p-2 bg-card'>
+        <div className='flex gap-2 items-end'>
+          {/* Expand/collapse button */}
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => setIsExpanded(!isExpanded)}
+            className='h-8 w-8 p-0'
+            title={isExpanded ? 'Collapse' : 'Expand'}
+          >
+            {isExpanded ? <ChevronDownIcon className='size-4' /> : <ChevronRightIcon className='size-4' />}
+          </Button>
+
+          {/* Kind selector with composite option */}
+          <div className='w-40'>
+            <Label className='text-xs'>Kind</Label>
+            <Select value={DOWNLOAD_PARSE_SEQUENCE.selectValue} onValueChange={handleKindChange}>
+              <SelectTrigger size='sm'>
+                <SelectValue>{sequence.label}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {/* Composite option first */}
+                <SelectItem value={DOWNLOAD_PARSE_SEQUENCE.selectValue}>
+                  {DOWNLOAD_PARSE_SEQUENCE.label}
+                </SelectItem>
+                {/* Other valid kinds */}
+                {regularKinds.map((kind) => (
+                  <SelectItem key={kind} value={kind}>
+                    {MVS_KIND_LABELS[kind] ?? kind}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Combined fields for download + parse */}
+          <DownloadParseFields
+            downloadNode={rootNode}
+            parseNode={exitNode}
+            onDownloadChange={handleDownloadParamsChange}
+            onParseChange={handleParseParamsChange}
+            onRefChange={handleRefChange}
+            availableConstants={availableConstants}
+          />
+
+          {/* Action buttons */}
+          <OperationActions
+            canHaveChildren={true}
+            isFirst={isFirst}
+            isLast={isLast}
+            onMoveUp={onMoveUp}
+            onMoveDown={onMoveDown}
+            onAddChild={handleAddChild}
+            onCopy={onCopy}
+            onRemove={onRemove}
+          />
+        </div>
+      </div>
+
+      {/* Children of parse node */}
+      {isExpanded && hasChildren && (
+        <div className='mt-2 space-y-2'>
+          {exitNode.children!.map((child, index) => (
+            <OperationRow
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              isFirst={index === 0}
+              isLast={index === exitNode.children!.length - 1}
+              availableConstants={availableConstants}
+              allowedKinds={validChildKinds}
+              onUpdate={(updates) => handleUpdateChild(index, updates)}
+              onRemove={() => handleRemoveChild(index)}
+              onAddChild={() => handleAddGrandChild(index)}
+              onCopy={() => handleCopyChild(index)}
+              onMoveUp={() => handleMoveChildUp(index)}
+              onMoveDown={() => handleMoveChildDown(index)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

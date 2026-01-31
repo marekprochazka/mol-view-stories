@@ -1,5 +1,4 @@
-export { DownloadFields } from './DownloadFields';
-export { ParseFields } from './ParseFields';
+export { DownloadParseFields } from './DownloadParseFields';
 export { StructureFields } from './StructureFields';
 export { ComponentFields } from './ComponentFields';
 export { RepresentationFields } from './RepresentationFields';

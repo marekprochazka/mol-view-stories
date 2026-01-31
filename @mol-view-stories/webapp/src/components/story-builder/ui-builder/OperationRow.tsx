@@ -5,15 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
 import { getValidChildren, isTerminalKind } from '@mol-view-stories/state-builder/src';
+import { detectCompositeSequence } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
 import { TreeLines } from './components/TreeLines';
 import { OperationActions } from './components/OperationActions';
 import { KindSelect } from './components/KindSelect';
+import { CompositeRow } from './CompositeRow';
 import {
-  DownloadFields,
-  ParseFields,
   StructureFields,
   ComponentFields,
   RepresentationFields,
@@ -56,8 +56,41 @@ export function OperationRow({
 }: OperationRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Check if this node is the root of a composite sequence
+  const compositeMatch = detectCompositeSequence(node);
+
+  if (compositeMatch) {
+    return (
+      <CompositeRow
+        sequence={compositeMatch.sequence}
+        rootNode={node}
+        exitNode={compositeMatch.exitNode}
+        onUpdate={onUpdate}
+        onRemove={onRemove}
+        onCopy={onCopy}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        depth={depth}
+        isFirst={isFirst}
+        isLast={isLast}
+        availableConstants={availableConstants}
+        allowedKinds={allowedKinds}
+      />
+    );
+  }
+
   const handleKindChange = (kind: MVSKind) => {
-    onUpdate({ kind, params: {} });
+    onUpdate({ kind, params: {}, children: [] });
+  };
+
+  const handleCompositeSelect = (compositeNode: UINode) => {
+    // Replace current node with the composite structure
+    onUpdate({
+      kind: compositeNode.kind,
+      params: compositeNode.params,
+      children: compositeNode.children,
+      ref: compositeNode.ref,
+    });
   };
 
   const handleParamsChange = (params: Record<string, unknown>) => {
@@ -81,18 +114,6 @@ export function OperationRow({
     }
 
     switch (node.kind) {
-      case 'download':
-        return (
-          <DownloadFields
-            params={node.params}
-            onChange={handleParamsChange}
-            availableConstants={availableConstants}
-          />
-        );
-
-      case 'parse':
-        return <ParseFields params={node.params} onChange={handleParamsChange} />;
-
       case 'structure':
         return <StructureFields params={node.params} onChange={handleParamsChange} />;
 
@@ -151,7 +172,12 @@ export function OperationRow({
             </Button>
           )}
 
-          <KindSelect value={node.kind} onChange={handleKindChange} allowedKinds={allowedKinds} />
+          <KindSelect
+            value={node.kind}
+            onChange={handleKindChange}
+            onCompositeSelect={handleCompositeSelect}
+            allowedKinds={allowedKinds}
+          />
 
           {renderDynamicFields()}
 

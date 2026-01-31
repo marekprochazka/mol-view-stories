@@ -14,6 +14,16 @@ export {
   isConstantRef,
 } from './types/ui-builder';
 
+// Export composite sequences
+export type { CompositeSequence } from './types/composite-sequences';
+export {
+  COMPOSITE_SEQUENCES,
+  DOWNLOAD_PARSE_SEQUENCE,
+  detectCompositeSequence,
+  createDownloadParseNodes,
+  getCompositeValidChildren,
+} from './types/composite-sequences';
+
 // Export MVS tree grammar (valid parent-child relationships)
 export {
   MVS_KIND_LABELS,

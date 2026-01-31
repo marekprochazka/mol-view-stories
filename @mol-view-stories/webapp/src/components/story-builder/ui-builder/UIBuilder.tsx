@@ -27,6 +27,7 @@ import {
   ConstantDefinition,
   getValidChildren,
 } from '@mol-view-stories/state-builder/src';
+import { createDownloadParseNodes } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 
 export interface UIBuilderProps {
@@ -87,7 +88,7 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
   const [constantsExpanded, setConstantsExpanded] = useState(true);
 
   const addNode = () => {
-    const newNode = createEmptyNode();
+    const newNode = createDownloadParseNodes();
     setNodes([...nodes, newNode]);
   };
 
