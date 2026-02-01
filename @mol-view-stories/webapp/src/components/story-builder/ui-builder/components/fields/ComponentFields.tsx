@@ -1,7 +1,11 @@
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { COMPONENT_SELECTORS, getActiveValues } from '@mol-view-stories/state-builder/src';
+import {
+  COMPONENT_SELECTORS,
+  formatSelectorPreview,
+  getActiveValues,
+} from '@mol-view-stories/state-builder/src';
+import { SelectorHelper } from '@/components/story-builder/ui-builder';
 
 interface ComponentFieldsProps {
   params: Record<string, unknown>;
@@ -18,15 +22,11 @@ export function ComponentFields({ params, onChange }: ComponentFieldsProps) {
   const isPreset = typeof selector === 'string' && activeSelectors.some((s) => s.value === selector);
   const selectorMode: SelectorMode = isPreset ? 'preset' : 'custom';
 
-  // Convert selector to string for custom display
-  const customSelectorString =
-    typeof selector === 'string' ? selector : selector ? JSON.stringify(selector, null, 2) : '';
-
   const handleModeChange = (mode: SelectorMode) => {
     if (mode === 'preset') {
       onChange({ ...params, selector: 'all' });
     } else {
-      onChange({ ...params, selector: '' });
+      onChange({ ...params, selector: undefined });
     }
   };
 
@@ -34,22 +34,8 @@ export function ComponentFields({ params, onChange }: ComponentFieldsProps) {
     onChange({ ...params, selector: value });
   };
 
-  const handleCustomChange = (value: string) => {
-    // Try to parse as JSON object, otherwise use as string
-    let parsedSelector: unknown;
-    const trimmedValue = value.trim();
-
-    if (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')) {
-      try {
-        parsedSelector = JSON.parse(trimmedValue);
-      } catch {
-        parsedSelector = value;
-      }
-    } else {
-      parsedSelector = value;
-    }
-
-    onChange({ ...params, selector: parsedSelector });
+  const handleBuilderSelect = (selectorValue: unknown) => {
+    onChange({ ...params, selector: selectorValue });
   };
 
   return (
@@ -87,12 +73,11 @@ export function ComponentFields({ params, onChange }: ComponentFieldsProps) {
 
       {selectorMode === 'custom' && (
         <div className='flex-1'>
-          <Label className='text-xs'>Selector Expression</Label>
-          <Input
-            className='h-8 text-sm'
-            placeholder='e.g., { "label_asym_id": "A" }'
-            value={customSelectorString}
-            onChange={(e) => handleCustomChange(e.target.value)}
+          <Label className='text-xs'>Selector</Label>
+          <SelectorHelper
+            onSelect={handleBuilderSelect}
+            initialValue={selector}
+            preview={formatSelectorPreview(selector)}
           />
         </div>
       )}

@@ -69,5 +69,40 @@ export {
   validateRepresentationParams,
 } from './types/mvs-params';
 
+// Export selector builder types and utilities
+export type {
+  LabeledValue,
+  ComponentSelectorObject,
+  ComponentSelectorValue,
+  SelectorBuilderMode,
+  StructureMetadata,
+  ChainInfo,
+  LigandInfo,
+  ParsedSelector,
+} from './types/selector-builder';
+export {
+  DEFAULT_CHAIN_IDS,
+  COMMON_LIGAND_IDS,
+  QUICK_SELECTOR_PRESETS,
+  buildChainSelector,
+  buildResidueSelector,
+  buildLigandSelector,
+  buildUnionSelector,
+  parseSelector,
+  selectorToString,
+  parseRawSelectorInput,
+  formatSelectorPreview,
+  getAvailableChains,
+  getAvailableLigands,
+  getResidueRange,
+} from './types/selector-builder';
+
+// Export structure metadata extraction utilities
+export type { RawChainData, RawLigandData } from './types/structure-metadata-extractor';
+export {
+  buildStructureMetadata,
+  mergeStructureMetadata,
+} from './types/structure-metadata-extractor';
+
 export const placeholder = 'state-builder';
 

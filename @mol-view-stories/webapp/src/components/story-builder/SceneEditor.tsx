@@ -614,6 +614,7 @@ function SceneCodeEditorSection() {
                 onCodeGenerated={(code) => {
                   modifyCurrentScene({ javascript: code });
                 }}
+                plugin={_modelInstance?.plugin}
               />
             </div>
           )}

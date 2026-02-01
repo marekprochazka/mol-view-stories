@@ -35,10 +35,14 @@ import {
 } from '@mol-view-stories/state-builder/src';
 import { createDownloadParseNodes } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
+import type { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
+import { StructureMetadataProvider } from './StructureMetadataContext';
 
 export interface UIBuilderProps {
   /** Callback when code is generated - receives the generated JavaScript code */
   onCodeGenerated?: (code: string) => void;
+  /** Mol* plugin instance for structure metadata extraction */
+  plugin?: PluginUIContext | null;
 }
 
 // Type for raw MVS JSON node (more permissive than the strict MVSNode union type)
@@ -71,7 +75,7 @@ function mvsTreeToUINodes(tree: MVSTree): UINode[] {
   return children.map((node, i) => addIdsToMVSNode(node, `${i}_`));
 }
 
-export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
+export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
   const activeSceneId = useAtomValue(ActiveSceneIdAtom);
 
   // Nodes state (per-scene)
@@ -262,9 +266,10 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
   };
 
   return (
-    <div className='flex flex-col gap-2 h-full p-2'>
-      <div className='flex items-center justify-between pb-2 border-b'>
-        <h3 className='text-sm font-medium'>Visual Builder</h3>
+    <StructureMetadataProvider plugin={plugin ?? null} onGenerateCode={generateCode}>
+      <div className='flex flex-col gap-2 h-full p-2'>
+        <div className='flex items-center justify-between pb-2 border-b'>
+          <h3 className='text-sm font-medium'>Visual Builder</h3>
         <div className='flex gap-2'>
           <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
             <DialogTrigger asChild>
@@ -355,5 +360,6 @@ export function UIBuilder({ onCodeGenerated }: UIBuilderProps) {
         )}
       </div>
     </div>
+    </StructureMetadataProvider>
   );
 }
