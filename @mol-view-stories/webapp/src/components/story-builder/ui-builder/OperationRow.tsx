@@ -31,6 +31,7 @@ interface OperationRowProps {
   onUpdate: (updates: Partial<UINode>) => void;
   onRemove: () => void;
   onAddChild?: () => void;
+  onAddTemplateChildren?: (nodes: UINode[]) => void;
   onCopy?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -46,6 +47,7 @@ export function OperationRow({
   onUpdate,
   onRemove,
   onAddChild,
+  onAddTemplateChildren,
   onCopy,
   onMoveUp,
   onMoveDown,
@@ -228,9 +230,11 @@ export function OperationRow({
             canHaveChildren={canHaveChildren}
             isFirst={isFirst}
             isLast={isLast}
+            parentKind={node.kind}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
             onAddChild={onAddChild}
+            onAddTemplateChildren={onAddTemplateChildren}
             onCopy={onCopy}
             onRemove={handleRemove}
           />
@@ -282,6 +286,14 @@ export function OperationRow({
                 newChildren[index] = {
                   ...child,
                   children: [...(child.children || []), newGrandChild],
+                };
+                onUpdate({ children: newChildren });
+              }}
+              onAddTemplateChildren={(templateNodes) => {
+                const newChildren = [...node.children!];
+                newChildren[index] = {
+                  ...child,
+                  children: [...(child.children || []), ...templateNodes],
                 };
                 onUpdate({ children: newChildren });
               }}

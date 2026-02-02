@@ -6,6 +6,8 @@ export type {
   ConstantEntry,
   ConstantDefinition,
   ConstantRef,
+  RawMVSNode,
+  RawMVSTree,
 } from './types/ui-builder';
 export {
   createEmptyNode,
@@ -13,6 +15,10 @@ export {
   createConstantRef,
   isConstantRef,
   countSubtreeNodes,
+  mvsNodeToUINode,
+  mvsTreeToUINodes,
+  uiNodeToMVSNode,
+  uiNodesToMVSTree,
 } from './types/ui-builder';
 
 // Export composite sequences
@@ -103,6 +109,26 @@ export {
   buildStructureMetadata,
   mergeStructureMetadata,
 } from './types/structure-metadata-extractor';
+
+// Export tree templates
+export type {
+  MVSNodeSnippet,
+  TreeTemplate,
+  TemplateCategory,
+} from './types/tree-templates';
+export {
+  BUILTIN_TEMPLATES,
+  getTemplatesForParentKind,
+  instantiateTemplate,
+} from './types/tree-templates';
+
+// Export template adapter
+export type { TemplateAdapter } from './types/template-adapter';
+export { BUILTIN_ADAPTER_ID } from './types/template-adapter';
+
+// Export template registry
+export type { TemplateRegistry } from './types/template-registry';
+export { createTemplateRegistry } from './types/template-registry';
 
 export const placeholder = 'state-builder';
 

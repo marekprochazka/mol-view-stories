@@ -19,6 +19,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UploadIcon, PlusIcon, ChevronDownIcon } from 'lucide-react';
@@ -32,9 +33,13 @@ import {
   UINode,
   ConstantDefinition,
   getValidChildren,
+  getTemplatesForParentKind,
+  instantiateTemplate,
+  mvsTreeToUINodes,
+  uiNodeToMVSNode,
+  type RawMVSTree,
 } from '@mol-view-stories/state-builder/src';
 import { createDownloadParseNodes } from '@mol-view-stories/state-builder/src/types/composite-sequences';
-import type { MVSTree } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import type { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { StructureMetadataProvider } from './StructureMetadataContext';
 
@@ -43,36 +48,6 @@ export interface UIBuilderProps {
   onCodeGenerated?: (code: string) => void;
   /** Mol* plugin instance for structure metadata extraction */
   plugin?: PluginUIContext | null;
-}
-
-// Type for raw MVS JSON node (more permissive than the strict MVSNode union type)
-interface RawMVSNode {
-  kind: string;
-  params?: Record<string, unknown>;
-  ref?: string;
-  custom?: Record<string, unknown>;
-  children?: RawMVSNode[];
-}
-
-/** Convert raw MVS JSON node to UINode by adding IDs recursively */
-function addIdsToMVSNode(node: RawMVSNode, prefix = ''): UINode {
-  const id = `${prefix}${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-  return {
-    id,
-    kind: node.kind as UINode['kind'],
-    params: node.params ?? {},
-    ref: node.ref,
-    custom: node.custom,
-    children: node.children?.map((child, i) => addIdsToMVSNode(child, `${id}_${i}_`)),
-  };
-}
-
-/** Convert MVSTree (root node) to UINode[] (the root's children with IDs) */
-function mvsTreeToUINodes(tree: MVSTree): UINode[] {
-  // MVSTree.children is typed as a discriminated union, cast to RawMVSNode for simpler handling
-  const children = (tree as { children?: RawMVSNode[] }).children;
-  if (!children) return [];
-  return children.map((node, i) => addIdsToMVSNode(node, `${i}_`));
 }
 
 export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
@@ -163,17 +138,6 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
     setNodes(newNodes);
   };
 
-  // Helper to remove UI-only id field before passing to compiler
-  const stripIds = (node: UINode): RawMVSNode => ({
-    kind: node.kind,
-    params: node.params,
-    ...(node.ref && { ref: node.ref }),
-    ...(node.custom && { custom: node.custom }),
-    ...(node.children && node.children.length > 0 && {
-      children: node.children.map(stripIds),
-    }),
-  });
-
   const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants) => {
     try {
       if (nodesToGenerate.length === 0) {
@@ -186,7 +150,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
         root: {
           kind: 'root' as const,
           params: {},
-          children: nodesToGenerate.map(stripIds),
+          children: nodesToGenerate.map(uiNodeToMVSNode),
         },
         metadata: {
           timestamp: new Date().toISOString(),
@@ -244,7 +208,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
         throw new Error('Invalid MVSTree: root node must have kind "root"');
       }
 
-      const mvsTree = parsed as MVSTree;
+      const mvsTree = parsed as RawMVSTree;
       const uiNodes = mvsTreeToUINodes(mvsTree);
 
       if (uiNodes.length === 0) {
@@ -312,11 +276,28 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
               <DropdownMenuItem onClick={addNode}>
-                Node
+                Empty Node
               </DropdownMenuItem>
               <DropdownMenuItem onClick={addConstant}>
                 Constant
               </DropdownMenuItem>
+              {getTemplatesForParentKind('root').length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  {getTemplatesForParentKind('root').map((template) => (
+                    <DropdownMenuItem
+                      key={template.id}
+                      onClick={() => {
+                        const templateNodes = instantiateTemplate(template);
+                        setNodes([...nodes, ...templateNodes]);
+                      }}
+                      title={template.description}
+                    >
+                      {template.name}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           <Button onClick={generateCode} size='sm'>
@@ -350,6 +331,15 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
               onUpdate={(updates) => updateNode(node.id, updates)}
               onRemove={() => removeNode(node.id)}
               onAddChild={() => addChildToNode(node.id)}
+              onAddTemplateChildren={(templateNodes) => {
+                setNodes(
+                  nodes.map((n) =>
+                    n.id === node.id
+                      ? { ...n, children: [...(n.children || []), ...templateNodes] }
+                      : n
+                  )
+                );
+              }}
               onCopy={() => copyNode(node.id)}
               onMoveUp={() => moveNodeUp(node.id)}
               onMoveDown={() => moveNodeDown(node.id)}

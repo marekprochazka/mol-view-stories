@@ -23,6 +23,7 @@ interface CompositeRowProps {
   onUpdate: (updates: Partial<UINode>) => void;
   onRemove: () => void;
   onAddChild?: () => void;
+  onAddTemplateChildren?: (nodes: UINode[]) => void;
   onCopy?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -149,6 +150,16 @@ export function CompositeRow({
     });
   };
 
+  const handleAddTemplateChildren = (templateNodes: UINode[]) => {
+    const updatedExitNode = {
+      ...exitNode,
+      children: [...(exitNode.children || []), ...templateNodes],
+    };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
   const handleUpdateChild = (childIndex: number, updates: Partial<UINode>) => {
     const currentChildren = exitNode.children || [];
     const updatedChildren = currentChildren.map((child, i) =>
@@ -178,6 +189,24 @@ export function CompositeRow({
     const updatedChild = {
       ...child,
       children: [...(child.children || []), newGrandChild],
+    };
+    const updatedChildren = currentChildren.map((c, i) =>
+      i === childIndex ? updatedChild : c
+    );
+    const updatedExitNode = { ...exitNode, children: updatedChildren };
+    onUpdate({
+      children: [updatedExitNode, ...(rootNode.children?.slice(1) || [])],
+    });
+  };
+
+  const handleAddTemplateGrandChildren = (childIndex: number, templateNodes: UINode[]) => {
+    const currentChildren = exitNode.children || [];
+    const child = currentChildren[childIndex];
+    if (!child) return;
+
+    const updatedChild = {
+      ...child,
+      children: [...(child.children || []), ...templateNodes],
     };
     const updatedChildren = currentChildren.map((c, i) =>
       i === childIndex ? updatedChild : c
@@ -288,9 +317,11 @@ export function CompositeRow({
             canHaveChildren={true}
             isFirst={isFirst}
             isLast={isLast}
+            parentKind={sequence.exitKind}
             onMoveUp={onMoveUp}
             onMoveDown={onMoveDown}
             onAddChild={handleAddChild}
+            onAddTemplateChildren={handleAddTemplateChildren}
             onCopy={onCopy}
             onRemove={handleRemove}
           />
@@ -326,6 +357,7 @@ export function CompositeRow({
               onUpdate={(updates) => handleUpdateChild(index, updates)}
               onRemove={() => handleRemoveChild(index)}
               onAddChild={() => handleAddGrandChild(index)}
+              onAddTemplateChildren={(templateNodes) => handleAddTemplateGrandChildren(index, templateNodes)}
               onCopy={() => handleCopyChild(index)}
               onMoveUp={() => handleMoveChildUp(index)}
               onMoveDown={() => handleMoveChildDown(index)}

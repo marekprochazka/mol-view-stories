@@ -1,13 +1,28 @@
 import { Button } from '@/components/ui/button';
-import { ArrowDownIcon, ArrowUpIcon, CopyIcon, PlusIcon, XIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ArrowDownIcon, ArrowUpIcon, CopyIcon, PlusIcon, XIcon, ChevronDownIcon } from 'lucide-react';
+import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
+import type { UINode } from '@mol-view-stories/state-builder/src';
+import {
+  getTemplatesForParentKind,
+  instantiateTemplate,
+} from '@mol-view-stories/state-builder/src';
 
 interface OperationActionsProps {
   canHaveChildren?: boolean;
   isFirst: boolean;
   isLast: boolean;
+  parentKind?: MVSKind | '';
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onAddChild?: () => void;
+  onAddTemplateChildren?: (nodes: UINode[]) => void;
   onCopy?: () => void;
   onRemove: () => void;
 }
@@ -19,12 +34,26 @@ export function OperationActions({
   canHaveChildren,
   isFirst,
   isLast,
+  parentKind,
   onMoveUp,
   onMoveDown,
   onAddChild,
+  onAddTemplateChildren,
   onCopy,
   onRemove,
 }: OperationActionsProps) {
+  // Get templates valid for this parent kind
+  const templates = parentKind ? getTemplatesForParentKind(parentKind as MVSKind) : [];
+  const hasTemplates = templates.length > 0;
+
+  const handleTemplateSelect = (templateId: string) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (template && onAddTemplateChildren) {
+      const nodes = instantiateTemplate(template);
+      onAddTemplateChildren(nodes);
+    }
+  };
+
   return (
     <div className='flex gap-1'>
       {onMoveUp && (
@@ -52,9 +81,33 @@ export function OperationActions({
         </Button>
       )}
       {canHaveChildren && onAddChild && (
-        <Button variant='ghost' size='sm' onClick={onAddChild} title='Add child operation' className='h-8 w-8 p-0'>
-          <PlusIcon className='size-4' />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='ghost' size='sm' title='Add child' className='h-8 px-1'>
+              <PlusIcon className='size-4' />
+              <ChevronDownIcon className='size-3' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end'>
+            <DropdownMenuItem onClick={onAddChild}>
+              Empty Node
+            </DropdownMenuItem>
+            {hasTemplates && (
+              <>
+                <DropdownMenuSeparator />
+                {templates.map((template) => (
+                  <DropdownMenuItem
+                    key={template.id}
+                    onClick={() => handleTemplateSelect(template.id)}
+                    title={template.description}
+                  >
+                    {template.name}
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
       {onCopy && (
         <Button variant='ghost' size='sm' onClick={onCopy} title='Copy operation' className='h-8 w-8 p-0'>
