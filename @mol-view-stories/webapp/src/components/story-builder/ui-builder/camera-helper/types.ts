@@ -1,9 +1,5 @@
-/** Camera parameters matching MVS camera node spec */
-export interface CameraParams {
-  position: [number, number, number];
-  target: [number, number, number];
-  up?: [number, number, number];
-}
+// Re-export data types from state-builder
+export type { CameraParams, CameraPresetDef } from '@mol-view-stories/state-builder/src';
 
 /** Vectors panel props */
 export interface VectorsPanelProps {
@@ -17,7 +13,7 @@ export interface VectorsPanelProps {
 
 /** Presets panel props */
 export interface PresetsPanelProps {
-  onSelect: (params: CameraParams) => void;
+  onSelect: (params: import('@mol-view-stories/state-builder/src').CameraParams) => void;
 }
 
 /** Raw panel props */
@@ -31,13 +27,4 @@ export interface RawPanelProps {
 export interface CameraPreviewProps {
   position: [number, number, number];
   target: [number, number, number];
-}
-
-/** Camera preset definition */
-export interface CameraPresetDef {
-  label: string;
-  description: string;
-  position: [number, number, number];
-  target: [number, number, number];
-  up: [number, number, number];
 }

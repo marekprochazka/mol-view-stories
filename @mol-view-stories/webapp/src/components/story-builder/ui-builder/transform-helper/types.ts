@@ -1,10 +1,5 @@
-/** Transform parameters matching MVS spec */
-export interface TransformParams {
-  rotation?: number[]; // 9 values, 3x3 column-major
-  translation?: [number, number, number];
-  rotation_center?: 'centroid' | [number, number, number] | null;
-  matrix?: number[] | null; // 16 values, 4x4 column-major
-}
+// Re-export data types from state-builder
+export type { TransformParams } from '@mol-view-stories/state-builder/src';
 
 /** Translation panel props */
 export interface TranslationPanelProps {

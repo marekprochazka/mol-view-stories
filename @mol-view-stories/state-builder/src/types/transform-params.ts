@@ -1,4 +1,44 @@
 // ============================================================
+// Transform Parameter Types & Utilities
+//
+// Pure business logic for MVS transform nodes: matrix math,
+// euler conversions, rotation presets, validation, and projection.
+// ============================================================
+
+// ============================================================
+// Types
+// ============================================================
+
+export type Vec3 = [number, number, number];
+
+/** Transform parameters matching MVS spec */
+export interface TransformParams {
+  rotation?: number[]; // 9 values, 3x3 column-major
+  translation?: [number, number, number];
+  rotation_center?: 'centroid' | [number, number, number] | null;
+  matrix?: number[] | null; // 16 values, 4x4 column-major
+}
+
+export interface RotationPresetDef {
+  label: string;
+  description: string;
+  matrix: number[];
+}
+
+// ============================================================
+// Constants
+// ============================================================
+
+export const IDENTITY_3x3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+
+export const IDENTITY_4x4 = [
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1,
+];
+
+// ============================================================
 // Column-major <-> Row-major conversion
 // ============================================================
 
@@ -115,15 +155,6 @@ export function matrixToEuler(m: number[]): { roll: number; pitch: number; yaw: 
 // Rotation presets
 // ============================================================
 
-export const IDENTITY_3x3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-
-export const IDENTITY_4x4 = [
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1,
-];
-
 /**
  * Generate rotation matrix (column-major) for angle around axis.
  */
@@ -147,12 +178,6 @@ export function rotationPreset(axis: 'x' | 'y' | 'z', angleDeg: number): number[
       // Column-major Rz
       return [rc, rs, 0, -rs, rc, 0, 0, 0, 1];
   }
-}
-
-export interface RotationPresetDef {
-  label: string;
-  description: string;
-  matrix: number[];
 }
 
 export const ROTATION_PRESETS: RotationPresetDef[] = [
@@ -213,10 +238,8 @@ export function isValidRotationMatrix(m: number[]): boolean {
 }
 
 // ============================================================
-// 3D projection utilities (for SVG preview)
+// 3D math & projection utilities
 // ============================================================
-
-export type Vec3 = [number, number, number];
 
 /** Multiply 3x3 column-major matrix by a Vec3 */
 export function mulMat3Vec3(m: number[], v: Vec3): Vec3 {

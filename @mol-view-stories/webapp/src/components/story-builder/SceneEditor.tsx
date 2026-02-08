@@ -64,6 +64,7 @@ import { PluginReactContext } from 'molstar/lib/mol-plugin-ui/base';
 import Link from 'next/link';
 import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
+import { snapshotToCameraParams } from '@mol-view-stories/state-builder/src';
 import { LLMContext } from './editors/llm-context';
 import { UIBuilder } from './ui-builder';
 
@@ -193,23 +194,10 @@ function CameraActions() {
 
   const sendToBuilder = () => {
     if (!cameraSnapshot) return;
-    const adjusted = adjustedCameraPosition(cameraSnapshot as CameraData);
     const sceneKey = activeSceneId || 'default';
     setAllCameras({
       ...allCameras,
-      [sceneKey]: {
-        position: [adjusted[0], adjusted[1], adjusted[2]],
-        target: [
-          cameraSnapshot.target[0] as number,
-          cameraSnapshot.target[1] as number,
-          cameraSnapshot.target[2] as number,
-        ],
-        up: [
-          cameraSnapshot.up[0] as number,
-          cameraSnapshot.up[1] as number,
-          cameraSnapshot.up[2] as number,
-        ],
-      },
+      [sceneKey]: snapshotToCameraParams(cameraSnapshot as CameraData),
     });
   };
 

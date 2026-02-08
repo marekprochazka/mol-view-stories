@@ -2,16 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import type { PresetsPanelProps, CameraPresetDef } from './types';
-
-const CAMERA_PRESETS: CameraPresetDef[] = [
-  { label: 'Front', description: 'View from front (+Z)', position: [0, 0, 100], target: [0, 0, 0], up: [0, 1, 0] },
-  { label: 'Back', description: 'View from back (-Z)', position: [0, 0, -100], target: [0, 0, 0], up: [0, 1, 0] },
-  { label: 'Top', description: 'View from top (+Y)', position: [0, 100, 0], target: [0, 0, 0], up: [0, 0, -1] },
-  { label: 'Bottom', description: 'View from bottom (-Y)', position: [0, -100, 0], target: [0, 0, 0], up: [0, 0, 1] },
-  { label: 'Left', description: 'View from left (-X)', position: [-100, 0, 0], target: [0, 0, 0], up: [0, 1, 0] },
-  { label: 'Right', description: 'View from right (+X)', position: [100, 0, 0], target: [0, 0, 0], up: [0, 1, 0] },
-];
+import { CAMERA_PRESETS } from '@mol-view-stories/state-builder/src';
+import type { PresetsPanelProps } from './types';
 
 export function PresetsPanel({ onSelect }: PresetsPanelProps) {
   return (

@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { columnToRowMajor3, rowToColumnMajor3, isValidRotationMatrix } from './math';
+import { columnToRowMajor3, rowToColumnMajor3, isValidRotationMatrix } from '@mol-view-stories/state-builder/src';
 import type { RotationMatrixPanelProps } from './types';
 
 export function RotationMatrixPanel({ matrix, onChange }: RotationMatrixPanelProps) {

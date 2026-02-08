@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { CameraPositionAtom } from '@/app/appstate';
 import type { CameraData } from '@/app/appstate';
-import { adjustedCameraPosition } from '@mol-view-stories/lib';
+import { snapshotToCameraParams, isDefaultUp } from '@mol-view-stories/state-builder/src';
 import {
   VectorsPanel,
   PresetsPanel,
@@ -63,18 +63,10 @@ export function CameraHelper({ onApply, initialValue }: CameraHelperProps) {
 
   const captureFromViewer = () => {
     if (!cameraSnapshot) return;
-    const adjusted = adjustedCameraPosition(cameraSnapshot as CameraData);
-    setPosition([adjusted[0], adjusted[1], adjusted[2]]);
-    setTarget([
-      cameraSnapshot.target[0] as number,
-      cameraSnapshot.target[1] as number,
-      cameraSnapshot.target[2] as number,
-    ]);
-    setUp([
-      cameraSnapshot.up[0] as number,
-      cameraSnapshot.up[1] as number,
-      cameraSnapshot.up[2] as number,
-    ]);
+    const params = snapshotToCameraParams(cameraSnapshot as CameraData);
+    setPosition([...params.position]);
+    setTarget([...params.target]);
+    if (params.up) setUp([...params.up]);
   };
 
   const handlePresetSelect = (params: CameraParams) => {
@@ -105,7 +97,7 @@ export function CameraHelper({ onApply, initialValue }: CameraHelperProps) {
     } else {
       const params: CameraParams = { position, target };
       // Only include up if it's not the default [0, 1, 0]
-      if (up[0] !== 0 || up[1] !== 1 || up[2] !== 0) {
+      if (!isDefaultUp(up)) {
         params.up = up;
       }
       onApply(params);

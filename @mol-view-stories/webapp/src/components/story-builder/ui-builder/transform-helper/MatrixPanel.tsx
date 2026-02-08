@@ -3,7 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { columnToRowMajor4, rowToColumnMajor4, IDENTITY_4x4 } from './math';
+import { columnToRowMajor4, rowToColumnMajor4, IDENTITY_4x4 } from '@mol-view-stories/state-builder/src';
 import type { MatrixPanelProps } from './types';
 
 export function MatrixPanel({ matrix, onChange }: MatrixPanelProps) {

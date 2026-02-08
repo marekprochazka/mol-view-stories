@@ -23,7 +23,7 @@ import {
   TransformPreview,
 } from './transform-helper';
 import type { TransformParams } from './transform-helper';
-import { IDENTITY_3x3, eulerToMatrix, matrixToEuler } from './transform-helper/math';
+import { IDENTITY_3x3, eulerToMatrix, matrixToEuler } from '@mol-view-stories/state-builder/src';
 
 interface TransformHelperProps {
   onApply: (transform: TransformParams) => void;

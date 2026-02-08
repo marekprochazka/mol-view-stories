@@ -28,7 +28,6 @@ import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
 import { CameraSection } from './CameraSection';
 import { ConstantsSection } from './ConstantsSection';
-import type { CameraParams } from './camera-helper';
 import {
   createEmptyNode,
   createEmptyConstant,
@@ -39,7 +38,10 @@ import {
   instantiateTemplate,
   mvsTreeToUINodes,
   uiNodeToMVSNode,
+  extractCameraFromUINodes,
+  isDefaultUp,
   type RawMVSTree,
+  type CameraParams,
 } from '@mol-view-stories/state-builder/src';
 import { createDownloadParseNodes } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
@@ -161,7 +163,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
           position: cameraToInclude.position,
           target: cameraToInclude.target,
         };
-        if (cameraToInclude.up) {
+        if (cameraToInclude.up && !isDefaultUp(cameraToInclude.up)) {
           cameraParams.up = cameraToInclude.up;
         }
         children.push({ kind: 'camera', params: cameraParams });
@@ -238,30 +240,20 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
       }
 
       // Extract camera nodes into the dedicated camera section
-      const cameraNodes = uiNodes.filter((n) => n.kind === 'camera');
-      const nonCameraNodes = uiNodes.filter((n) => n.kind !== 'camera');
+      const extracted = extractCameraFromUINodes(uiNodes);
 
-      if (cameraNodes.length > 0) {
-        const camParams = cameraNodes[0].params as Record<string, unknown>;
-        setCamera({
-          position: camParams.position as [number, number, number],
-          target: camParams.target as [number, number, number],
-          up: camParams.up as [number, number, number] | undefined,
-        });
+      if (extracted.camera) {
+        setCamera(extracted.camera);
       }
 
-      setNodes(nonCameraNodes);
+      setNodes(extracted.nodes);
       setImportDialogOpen(false);
       setImportJson('');
       toast.success('MVSTree imported successfully!');
 
       // Auto-generate code after import
       setTimeout(() => {
-        generateCodeFromNodes(nonCameraNodes, constants, cameraNodes.length > 0 ? {
-          position: (cameraNodes[0].params as Record<string, unknown>).position as [number, number, number],
-          target: (cameraNodes[0].params as Record<string, unknown>).target as [number, number, number],
-          up: (cameraNodes[0].params as Record<string, unknown>).up as [number, number, number] | undefined,
-        } : camera);
+        generateCodeFromNodes(extracted.nodes, constants, extracted.camera ?? camera);
       }, 0);
     } catch (error) {
       toast.error(`Import failed: ${error instanceof Error ? error.message : String(error)}`);

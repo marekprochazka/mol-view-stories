@@ -11,6 +11,7 @@
     "codegen": "tsx src/cli/index.ts"
   },
   "dependencies": {
+    "@mol-view-stories/lib": "workspace:*",
     "molstar": "^5.5.0"
   },
   "files": [

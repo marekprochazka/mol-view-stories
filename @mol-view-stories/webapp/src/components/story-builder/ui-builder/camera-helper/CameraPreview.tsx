@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { projectIsometric } from '../transform-helper/math';
-import type { Vec3 } from '../transform-helper/math';
+import { projectIsometric } from '@mol-view-stories/state-builder/src';
+import type { Vec3 } from '@mol-view-stories/state-builder/src';
 import type { CameraPreviewProps } from './types';
 
 const SIZE = 180;

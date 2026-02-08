@@ -130,5 +130,40 @@ export { BUILTIN_ADAPTER_ID } from './types/template-adapter';
 export type { TemplateRegistry } from './types/template-registry';
 export { createTemplateRegistry } from './types/template-registry';
 
+// Export transform parameter types and utilities
+export type {
+  Vec3,
+  TransformParams,
+  RotationPresetDef,
+} from './types/transform-params';
+export {
+  IDENTITY_3x3,
+  IDENTITY_4x4,
+  ROTATION_PRESETS,
+  columnToRowMajor3,
+  rowToColumnMajor3,
+  columnToRowMajor4,
+  rowToColumnMajor4,
+  eulerToMatrix,
+  matrixToEuler,
+  rotationPreset,
+  isValidRotationMatrix,
+  mulMat3Vec3,
+  projectIsometric,
+} from './types/transform-params';
+
+// Export camera parameter types and utilities
+export type {
+  CameraParams,
+  CameraPresetDef,
+} from './types/camera-params';
+export {
+  DEFAULT_UP,
+  CAMERA_PRESETS,
+  isDefaultUp,
+  snapshotToCameraParams,
+  extractCameraFromUINodes,
+} from './types/camera-params';
+
 export const placeholder = 'state-builder';
 

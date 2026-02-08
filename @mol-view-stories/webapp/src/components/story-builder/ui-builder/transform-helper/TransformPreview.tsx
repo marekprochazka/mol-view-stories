@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { mulMat3Vec3, projectIsometric, IDENTITY_3x3 } from './math';
-import type { Vec3 } from './math';
+import { mulMat3Vec3, projectIsometric, IDENTITY_3x3 } from '@mol-view-stories/state-builder/src';
+import type { Vec3 } from '@mol-view-stories/state-builder/src';
 import type { TransformPreviewProps } from './types';
 
 // Unit cube vertices centered at origin

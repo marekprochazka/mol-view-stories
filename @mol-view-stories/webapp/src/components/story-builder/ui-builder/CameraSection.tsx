@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { CameraPositionAtom } from '@/app/appstate';
 import type { CameraData } from '@/app/appstate';
-import { adjustedCameraPosition } from '@mol-view-stories/lib';
+import { snapshotToCameraParams, isDefaultUp } from '@mol-view-stories/state-builder/src';
 import { CameraHelper } from './CameraHelper';
 import type { CameraParams } from './camera-helper';
 
@@ -25,20 +25,7 @@ export function CameraSection({ camera, onCameraChange }: CameraSectionProps) {
 
   const captureFromViewer = () => {
     if (!cameraSnapshot) return;
-    const adjusted = adjustedCameraPosition(cameraSnapshot as CameraData);
-    onCameraChange({
-      position: [adjusted[0], adjusted[1], adjusted[2]],
-      target: [
-        cameraSnapshot.target[0] as number,
-        cameraSnapshot.target[1] as number,
-        cameraSnapshot.target[2] as number,
-      ],
-      up: [
-        cameraSnapshot.up[0] as number,
-        cameraSnapshot.up[1] as number,
-        cameraSnapshot.up[2] as number,
-      ],
-    });
+    onCameraChange(snapshotToCameraParams(cameraSnapshot as CameraData));
   };
 
   return (
@@ -75,7 +62,7 @@ export function CameraSection({ camera, onCameraChange }: CameraSectionProps) {
                   <span className='text-muted-foreground'>Target: </span>
                   {formatVec3(camera.target)}
                 </div>
-                {camera.up && (camera.up[0] !== 0 || camera.up[1] !== 1 || camera.up[2] !== 0) && (
+                {camera.up && !isDefaultUp(camera.up) && (
                   <div>
                     <span className='text-muted-foreground'>Up: </span>
                     {formatVec3(camera.up)}

@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ROTATION_PRESETS } from './math';
+import { ROTATION_PRESETS } from '@mol-view-stories/state-builder/src';
 import type { RotationPresetsPanelProps } from './types';
 
 export function RotationPresetsPanel({ onSelect }: RotationPresetsPanelProps) {
