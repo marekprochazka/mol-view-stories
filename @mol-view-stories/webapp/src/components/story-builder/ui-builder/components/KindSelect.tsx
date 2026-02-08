@@ -13,7 +13,8 @@ interface KindSelectProps {
 
 export function KindSelect({ value, onChange, onCompositeSelect, allowedKinds }: KindSelectProps) {
   // Use allowed kinds if provided, otherwise show all selectable kinds
-  const kindsToShow = allowedKinds ?? MVS_SELECTABLE_KINDS;
+  // Camera is always filtered out — it's managed by the dedicated CameraSection
+  const kindsToShow = (allowedKinds ?? MVS_SELECTABLE_KINDS).filter((k) => k !== 'camera');
 
   const showCompositeOption = kindsToShow.includes('download');
 

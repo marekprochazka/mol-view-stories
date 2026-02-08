@@ -1,6 +1,6 @@
 'use client';
 
-import { ActiveSceneIdAtom, UIBuilderConstantsAtom, UIBuilderNodesAtom } from '@/app/appstate';
+import { ActiveSceneIdAtom, UIBuilderCameraAtom, UIBuilderConstantsAtom, UIBuilderNodesAtom } from '@/app/appstate';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,7 +26,9 @@ import { UploadIcon, PlusIcon, ChevronDownIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
+import { CameraSection } from './CameraSection';
 import { ConstantsSection } from './ConstantsSection';
+import type { CameraParams } from './camera-helper';
 import {
   createEmptyNode,
   createEmptyConstant,
@@ -66,6 +68,13 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
   const constants = (allConstants[sceneKey] || []) as ConstantDefinition[];
   const setConstants = (newConstants: ConstantDefinition[]) => {
     setAllConstants({ ...allConstants, [sceneKey]: newConstants });
+  };
+
+  // Camera state (per-scene)
+  const [allCameras, setAllCameras] = useAtom(UIBuilderCameraAtom);
+  const camera = allCameras[sceneKey] || null;
+  const setCamera = (newCamera: CameraParams | null) => {
+    setAllCameras({ ...allCameras, [sceneKey]: newCamera });
   };
 
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -138,11 +147,24 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
     setNodes(newNodes);
   };
 
-  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants) => {
+  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants, cameraToInclude: CameraParams | null = camera) => {
     try {
       if (nodesToGenerate.length === 0) {
         toast.error('No nodes to generate code from. Add nodes or import an MVSTree first.');
         return;
+      }
+
+      // Build children list, appending camera node if set
+      const children = nodesToGenerate.map(uiNodeToMVSNode);
+      if (cameraToInclude) {
+        const cameraParams: Record<string, unknown> = {
+          position: cameraToInclude.position,
+          target: cameraToInclude.target,
+        };
+        if (cameraToInclude.up) {
+          cameraParams.up = cameraToInclude.up;
+        }
+        children.push({ kind: 'camera', params: cameraParams });
       }
 
       // Build MVS data structure with root wrapper
@@ -150,7 +172,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
         root: {
           kind: 'root' as const,
           params: {},
-          children: nodesToGenerate.map(uiNodeToMVSNode),
+          children,
         },
         metadata: {
           timestamp: new Date().toISOString(),
@@ -215,14 +237,31 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
         throw new Error('MVSTree has no children nodes');
       }
 
-      setNodes(uiNodes);
+      // Extract camera nodes into the dedicated camera section
+      const cameraNodes = uiNodes.filter((n) => n.kind === 'camera');
+      const nonCameraNodes = uiNodes.filter((n) => n.kind !== 'camera');
+
+      if (cameraNodes.length > 0) {
+        const camParams = cameraNodes[0].params as Record<string, unknown>;
+        setCamera({
+          position: camParams.position as [number, number, number],
+          target: camParams.target as [number, number, number],
+          up: camParams.up as [number, number, number] | undefined,
+        });
+      }
+
+      setNodes(nonCameraNodes);
       setImportDialogOpen(false);
       setImportJson('');
       toast.success('MVSTree imported successfully!');
 
       // Auto-generate code after import
       setTimeout(() => {
-        generateCodeFromNodes(uiNodes);
+        generateCodeFromNodes(nonCameraNodes, constants, cameraNodes.length > 0 ? {
+          position: (cameraNodes[0].params as Record<string, unknown>).position as [number, number, number],
+          target: (cameraNodes[0].params as Record<string, unknown>).target as [number, number, number],
+          up: (cameraNodes[0].params as Record<string, unknown>).up as [number, number, number] | undefined,
+        } : camera);
       }, 0);
     } catch (error) {
       toast.error(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -314,6 +353,9 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
           onToggleExpanded={() => setConstantsExpanded(!constantsExpanded)}
           onConstantsChange={setConstants}
         />
+
+        {/* Camera Section */}
+        <CameraSection camera={camera} onCameraChange={setCamera} />
 
         {/* Nodes Section */}
         {nodes.length === 0 ? (

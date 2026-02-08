@@ -64,7 +64,7 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
 
   // Context and derived state
   const metadataContext = useStructureMetadataContext();
-  const effectiveMetadata = metadata ?? metadataContext?.metadata;
+  const effectiveMetadata = metadata ?? metadataContext?.metadata ?? undefined;
   const availableChains = getAvailableChains(effectiveMetadata);
   const availableLigands = getAvailableLigands(effectiveMetadata);
 

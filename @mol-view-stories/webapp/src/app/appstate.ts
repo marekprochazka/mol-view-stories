@@ -33,6 +33,7 @@ export {
   OpenSessionAtom,
   UIBuilderNodesAtom,
   UIBuilderConstantsAtom,
+  UIBuilderCameraAtom,
 } from './state/atoms';
 
 // Helper functions for state management

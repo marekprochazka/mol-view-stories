@@ -17,7 +17,7 @@ import { createEmptyNode } from './ui-builder';
 /**
  * MVS node snippet - UINode without id (id added at instantiation)
  */
-export type MVSNodeSnippet = Omit<UINode, 'id'> & {
+export type MVSNodeSnippet = Omit<UINode, 'id' | 'children'> & {
   children?: MVSNodeSnippet[];
 };
 

@@ -2,7 +2,9 @@
 
 import {
   ActiveSceneAtom,
+  ActiveSceneIdAtom,
   CameraPositionAtom,
+  UIBuilderCameraAtom,
   modifyCurrentScene,
   SceneData,
   StoryAssetsAtom,
@@ -186,6 +188,30 @@ function copyFovAdjustedCameraToClipboard(snapshot: Camera.Snapshot | CameraData
 function CameraActions() {
   const cameraSnapshot = useAtomValue(CameraPositionAtom);
   const scene = useAtomValue(ActiveSceneAtom);
+  const activeSceneId = useAtomValue(ActiveSceneIdAtom);
+  const [allCameras, setAllCameras] = useAtom(UIBuilderCameraAtom);
+
+  const sendToBuilder = () => {
+    if (!cameraSnapshot) return;
+    const adjusted = adjustedCameraPosition(cameraSnapshot as CameraData);
+    const sceneKey = activeSceneId || 'default';
+    setAllCameras({
+      ...allCameras,
+      [sceneKey]: {
+        position: [adjusted[0], adjusted[1], adjusted[2]],
+        target: [
+          cameraSnapshot.target[0] as number,
+          cameraSnapshot.target[1] as number,
+          cameraSnapshot.target[2] as number,
+        ],
+        up: [
+          cameraSnapshot.up[0] as number,
+          cameraSnapshot.up[1] as number,
+          cameraSnapshot.up[2] as number,
+        ],
+      },
+    });
+  };
 
   return (
     <>
@@ -221,6 +247,13 @@ function CameraActions() {
             title='Copy current camera position to clipboard'
           >
             <CopyIcon className='h-3 w-3 mr-1' /> Copy Position
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={sendToBuilder}
+            disabled={!cameraSnapshot}
+            title='Send FOV-adjusted camera position to the Visual Builder camera section'
+          >
+            <BoxIcon className='h-3 w-3 mr-1' /> Send to Builder
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
