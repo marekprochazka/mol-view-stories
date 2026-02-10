@@ -34,6 +34,7 @@ export {
   UIBuilderNodesAtom,
   UIBuilderConstantsAtom,
   UIBuilderCameraAtom,
+  UIBuilderAnimationAtom,
 } from './state/atoms';
 
 // Helper functions for state management

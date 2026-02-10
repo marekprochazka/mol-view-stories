@@ -29,4 +29,6 @@ export const VALID_MVS_KINDS = [
     'primitives',
     'primitives_from_uri',
     'primitive',
+    'animation',
+    'interpolate',
   ];

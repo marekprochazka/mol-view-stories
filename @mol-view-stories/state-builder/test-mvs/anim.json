@@ -1,0 +1,26 @@
+{
+  "kind": "animation",
+  "children": [
+    {
+      "kind": "interpolate",
+      "params": {
+        "kind": "scalar",
+        "target_ref": "start-story",
+        "duration_ms": 1000,
+        "start_ms": 1,
+        "property": "label_opacity",
+        "start": 0,
+        "end": 1
+      }
+    }
+  ],
+  "params": {},
+  "custom": {
+    "molstar_trackball": {
+      "name": "spin",
+      "params": {
+        "speed": -0.05
+      }
+    }
+  }
+}

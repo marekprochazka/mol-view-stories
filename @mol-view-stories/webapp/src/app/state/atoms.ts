@@ -209,3 +209,7 @@ export const UIBuilderConstantsAtom = atom<Record<string, unknown[]>>({});
 // UIBuilder Camera - keyed by scene ID for per-scene persistence
 // Stores camera params (position, target, up) for the dedicated camera section
 export const UIBuilderCameraAtom = atom<Record<string, { position: [number, number, number]; target: [number, number, number]; up?: [number, number, number] } | null>>({});
+
+// UIBuilder Animation - keyed by scene ID for per-scene persistence
+// Stores animation params (steps, settings, trackball) for the dedicated animation section
+export const UIBuilderAnimationAtom = atom<Record<string, import('@mol-view-stories/state-builder/src').AnimationParams | null>>({});

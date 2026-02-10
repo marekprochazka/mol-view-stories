@@ -16,11 +16,12 @@ export class CodeGenContext {
       const existing = this.varMap.get(ref);
       if (existing) return existing;
 
-      // Ensure ref is unique
-      let varName = ref;
+      // Sanitize ref to valid JS identifier, then ensure uniqueness
+      let varName = this.sanitizeVarName(ref);
       let counter = 1;
+      const baseVarName = varName;
       while (this.usedVars.has(varName)) {
-        varName = `${ref}_${counter++}`;
+        varName = `${baseVarName}_${counter++}`;
       }
 
       this.varMap.set(ref, varName);
@@ -50,11 +51,20 @@ export class CodeGenContext {
   }
 
   /**
-   * Sanitize node kind to valid JavaScript identifier
+   * Sanitize a string to a valid JavaScript identifier.
+   * Converts kebab-case, snake_case, and spaces to camelCase,
+   * strips remaining invalid characters, and ensures it starts with a letter.
    */
-  private sanitizeVarName(kind: string): string {
-    // Convert kebab-case or snake_case to camelCase
-    return kind.replace(/[-_]([a-z])/g, (_, char) => char.toUpperCase());
+  private sanitizeVarName(name: string): string {
+    // Convert separators (hyphens, underscores, spaces) followed by a letter to camelCase
+    let result = name.replace(/[-_\s]+([a-zA-Z])/g, (_, char) => char.toUpperCase());
+    // Remove any remaining invalid identifier characters
+    result = result.replace(/[^a-zA-Z0-9$_]/g, '');
+    // Ensure it starts with a letter (prefix with underscore if not)
+    if (!result || !/^[a-zA-Z$_]/.test(result)) {
+      result = '_' + result;
+    }
+    return result;
   }
 
   /**

@@ -5,7 +5,7 @@ import { ASTNode } from '../ast/types.ts';
  */
 export class NodeMethodMapper {
   static getMethodName(node: ASTNode): string {
-    const kind = node.kind;
+    const kind = node.kind as string;
 
     // Handle discriminated unions and special cases
     switch (kind) {
@@ -71,6 +71,10 @@ export class NodeMethodMapper {
       case 'focus': return 'focus';
       case 'camera': return 'camera';
       case 'canvas': return 'canvas';
+
+      // Animation
+      case 'animation': return 'animation';
+      case 'interpolate': return 'interpolate';
 
       default:
         throw new Error(`Unknown node kind: ${kind}`);
@@ -142,7 +146,10 @@ export class NodeMethodMapper {
       'tooltip',
       'tooltip_from_uri',
       'tooltip_from_source',
-    ].includes(node.kind);
+
+      // Animation (interpolate returns Animation for chaining)
+      'interpolate',
+    ].includes(node.kind as string);
   }
 
   static needsVariable(node: ASTNode): boolean {
@@ -159,6 +166,9 @@ export class NodeMethodMapper {
       'volume_representation',
       'primitives',
       'primitives_from_uri',
-    ].includes(node.kind);
+
+      // Animation container (creates Animation builder)
+      'animation',
+    ].includes(node.kind as string);
   }
 }

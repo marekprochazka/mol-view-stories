@@ -116,7 +116,8 @@ describe('Tree Templates', () => {
 
       // All have unique IDs
       const allIds = new Set<string>();
-      function collectIds(node: { id: string; children?: { id: string; children?: unknown[] }[] }) {
+      interface IdNode { id: string; children?: IdNode[] }
+      function collectIds(node: IdNode) {
         allIds.add(node.id);
         node.children?.forEach(collectIds);
       }

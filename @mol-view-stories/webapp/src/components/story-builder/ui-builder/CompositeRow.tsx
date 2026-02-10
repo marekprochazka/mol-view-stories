@@ -32,6 +32,7 @@ interface CompositeRowProps {
   isLast?: boolean;
   availableConstants?: ConstantDefinition[];
   allowedKinds?: readonly MVSKind[];
+  allNodes?: UINode[];
 }
 
 export function CompositeRow({
@@ -48,6 +49,7 @@ export function CompositeRow({
   isLast = false,
   availableConstants = [],
   allowedKinds,
+  allNodes = [],
 }: CompositeRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [pendingAction, setPendingAction] = useState<{
@@ -354,6 +356,7 @@ export function CompositeRow({
               isLast={index === exitNode.children!.length - 1}
               availableConstants={availableConstants}
               allowedKinds={validChildKinds}
+              allNodes={allNodes}
               onUpdate={(updates) => handleUpdateChild(index, updates)}
               onRemove={() => handleRemoveChild(index)}
               onAddChild={() => handleAddGrandChild(index)}

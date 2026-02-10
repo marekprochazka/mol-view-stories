@@ -1,6 +1,6 @@
 'use client';
 
-import { ActiveSceneIdAtom, UIBuilderCameraAtom, UIBuilderConstantsAtom, UIBuilderNodesAtom } from '@/app/appstate';
+import { ActiveSceneIdAtom, UIBuilderAnimationAtom, UIBuilderCameraAtom, UIBuilderConstantsAtom, UIBuilderNodesAtom } from '@/app/appstate';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,9 +23,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UploadIcon, PlusIcon, ChevronDownIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { OperationRow } from './OperationRow';
+import { AnimationSection } from './AnimationSection';
 import { CameraSection } from './CameraSection';
 import { ConstantsSection } from './ConstantsSection';
 import {
@@ -39,9 +40,14 @@ import {
   mvsTreeToUINodes,
   uiNodeToMVSNode,
   extractCameraFromUINodes,
+  extractAnimationFromUINodes,
+  extractRefsFromNodes,
+  convertAnimationToMVSNode,
   isDefaultUp,
+  assignMissingRefs,
   type RawMVSTree,
   type CameraParams,
+  type AnimationParams,
 } from '@mol-view-stories/state-builder/src';
 import { createDownloadParseNodes } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
@@ -79,12 +85,22 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
     setAllCameras({ ...allCameras, [sceneKey]: newCamera });
   };
 
+  // Animation state (per-scene)
+  const [allAnimations, setAllAnimations] = useAtom(UIBuilderAnimationAtom);
+  const animation = (allAnimations[sceneKey] || null) as AnimationParams | null;
+  const setAnimation = (newAnimation: AnimationParams | null) => {
+    setAllAnimations({ ...allAnimations, [sceneKey]: newAnimation });
+  };
+
+  // Available refs from the node tree (for animation target_ref dropdowns)
+  const availableRefs = useMemo(() => extractRefsFromNodes(nodes), [nodes]);
+
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
   const [constantsExpanded, setConstantsExpanded] = useState(true);
 
   const addNode = () => {
-    const newNode = createDownloadParseNodes();
+    const [newNode] = assignMissingRefs([createDownloadParseNodes()], nodes);
     setNodes([...nodes, newNode]);
   };
 
@@ -149,7 +165,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
     setNodes(newNodes);
   };
 
-  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants, cameraToInclude: CameraParams | null = camera) => {
+  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants, cameraToInclude: CameraParams | null = camera, animationToInclude: AnimationParams | null = animation) => {
     try {
       if (nodesToGenerate.length === 0) {
         toast.error('No nodes to generate code from. Add nodes or import an MVSTree first.');
@@ -167,6 +183,11 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
           cameraParams.up = cameraToInclude.up;
         }
         children.push({ kind: 'camera', params: cameraParams });
+      }
+
+      // Append animation node if set
+      if (animationToInclude && (animationToInclude.steps.length > 0 || animationToInclude.trackball?.enabled)) {
+        children.push(convertAnimationToMVSNode(animationToInclude));
       }
 
       // Build MVS data structure with root wrapper
@@ -240,20 +261,27 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
       }
 
       // Extract camera nodes into the dedicated camera section
-      const extracted = extractCameraFromUINodes(uiNodes);
+      const cameraExtracted = extractCameraFromUINodes(uiNodes);
 
-      if (extracted.camera) {
-        setCamera(extracted.camera);
+      // Extract animation nodes into the dedicated animation section
+      const animExtracted = extractAnimationFromUINodes(cameraExtracted.nodes);
+
+      if (cameraExtracted.camera) {
+        setCamera(cameraExtracted.camera);
+      }
+      if (animExtracted.animation) {
+        setAnimation(animExtracted.animation);
       }
 
-      setNodes(extracted.nodes);
+      const nodesWithRefs = assignMissingRefs(animExtracted.nodes, []);
+      setNodes(nodesWithRefs);
       setImportDialogOpen(false);
       setImportJson('');
       toast.success('MVSTree imported successfully!');
 
       // Auto-generate code after import
       setTimeout(() => {
-        generateCodeFromNodes(extracted.nodes, constants, extracted.camera ?? camera);
+        generateCodeFromNodes(nodesWithRefs, constants, cameraExtracted.camera ?? camera, animExtracted.animation ?? animation);
       }, 0);
     } catch (error) {
       toast.error(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -319,7 +347,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
                     <DropdownMenuItem
                       key={template.id}
                       onClick={() => {
-                        const templateNodes = instantiateTemplate(template);
+                        const templateNodes = assignMissingRefs(instantiateTemplate(template), nodes);
                         setNodes([...nodes, ...templateNodes]);
                       }}
                       title={template.description}
@@ -349,11 +377,44 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
         {/* Camera Section */}
         <CameraSection camera={camera} onCameraChange={setCamera} />
 
+        {/* Animation Section */}
+        <AnimationSection animation={animation} onAnimationChange={setAnimation} availableRefs={availableRefs} />
+
         {/* Nodes Section */}
         {nodes.length === 0 ? (
           <div className='flex flex-col items-center justify-center h-32 text-muted-foreground text-sm gap-2 border rounded-md'>
             <p>No nodes yet.</p>
-            <p>Click &quot;Import&quot; to load an MVSTree or &quot;Add&quot; to create a new node.</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size='sm' variant='outline'>
+                  <PlusIcon className='size-4 mr-1' />
+                  Add
+                  <ChevronDownIcon className='size-4 ml-1' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='center'>
+                <DropdownMenuItem onClick={addNode}>
+                  Empty Node
+                </DropdownMenuItem>
+                {getTemplatesForParentKind('root').length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    {getTemplatesForParentKind('root').map((template) => (
+                      <DropdownMenuItem
+                        key={template.id}
+                        onClick={() => {
+                          const templateNodes = instantiateTemplate(template);
+                          setNodes([...nodes, ...templateNodes]);
+                        }}
+                        title={template.description}
+                      >
+                        {template.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           nodes.map((node, index) => (
@@ -366,10 +427,11 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
               onRemove={() => removeNode(node.id)}
               onAddChild={() => addChildToNode(node.id)}
               onAddTemplateChildren={(templateNodes) => {
+                const withRefs = assignMissingRefs(templateNodes, nodes);
                 setNodes(
                   nodes.map((n) =>
                     n.id === node.id
-                      ? { ...n, children: [...(n.children || []), ...templateNodes] }
+                      ? { ...n, children: [...(n.children || []), ...withRefs] }
                       : n
                   )
                 );
@@ -379,6 +441,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
               onMoveDown={() => moveNodeDown(node.id)}
               availableConstants={constants}
               allowedKinds={getValidChildren('root')}
+              allNodes={nodes}
             />
           ))
         )}
