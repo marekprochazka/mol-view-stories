@@ -55,6 +55,67 @@ importers:
         specifier: ^4.0.16
         version: 4.0.17(@types/node@22.19.7)(@vitest/ui@4.0.17)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.21.0)
 
+  '@mol-view-stories/state-builder-ui':
+    dependencies:
+      '@mol-view-stories/lib':
+        specifier: workspace:*
+        version: link:../lib
+      '@mol-view-stories/state-builder':
+        specifier: workspace:*
+        version: link:../state-builder
+      '@radix-ui/react-dialog':
+        specifier: ^1.1.14
+        version: 1.1.15(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-dropdown-menu':
+        specifier: ^2.1.15
+        version: 2.1.16(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-label':
+        specifier: ^2.1.7
+        version: 2.1.7(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-select':
+        specifier: ^2.2.5
+        version: 2.2.6(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-slot':
+        specifier: ^1.2.3
+        version: 1.2.3(@types/react@19.1.11)(react@19.2.3)
+      '@radix-ui/react-switch':
+        specifier: ^1.2.5
+        version: 1.2.6(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@radix-ui/react-tabs':
+        specifier: ^1.1.12
+        version: 1.1.13(@types/react-dom@19.1.7(@types/react@19.1.11))(@types/react@19.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      jotai:
+        specifier: ^2.12.5
+        version: 2.13.1(@types/react@19.1.11)(react@19.2.3)
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.3)
+      molstar:
+        specifier: ^5.0.0
+        version: 5.5.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 19.2.3
+      react-dom:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 19.2.3(react@19.2.3)
+      tailwind-merge:
+        specifier: ^3.3.0
+        version: 3.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.1.11
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.1.7(@types/react@19.1.11)
+
   '@mol-view-stories/webapp':
     dependencies:
       '@mol-view-stories/lib':
@@ -63,6 +124,9 @@ importers:
       '@mol-view-stories/state-builder':
         specifier: workspace:*
         version: link:../state-builder
+      '@mol-view-stories/state-builder-ui':
+        specifier: workspace:*
+        version: link:../state-builder-ui
       '@monaco-editor/react':
         specifier: 4.8.0-rc.3
         version: 4.8.0-rc.3(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

@@ -198,18 +198,3 @@ export interface SharedStoryState {
 // Unsaved Changes Tracking Atoms
 export const IsDirtyAtom = atom<boolean>(false);
 
-// UIBuilder State - keyed by scene ID for per-scene persistence
-// This is ephemeral working state (not saved to session files)
-export const UIBuilderNodesAtom = atom<Record<string, unknown[]>>({});
-
-// UIBuilder Constants - keyed by scene ID for per-scene persistence
-// Stores constant definitions (colors, URLs, etc.) that can be referenced in builder nodes
-export const UIBuilderConstantsAtom = atom<Record<string, unknown[]>>({});
-
-// UIBuilder Camera - keyed by scene ID for per-scene persistence
-// Stores camera params (position, target, up) for the dedicated camera section
-export const UIBuilderCameraAtom = atom<Record<string, { position: [number, number, number]; target: [number, number, number]; up?: [number, number, number] } | null>>({});
-
-// UIBuilder Animation - keyed by scene ID for per-scene persistence
-// Stores animation params (steps, settings, trackball) for the dedicated animation section
-export const UIBuilderAnimationAtom = atom<Record<string, import('@mol-view-stories/state-builder/src').AnimationParams | null>>({});

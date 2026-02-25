@@ -4,7 +4,6 @@ import {
   ActiveSceneAtom,
   ActiveSceneIdAtom,
   CameraPositionAtom,
-  UIBuilderCameraAtom,
   modifyCurrentScene,
   SceneData,
   StoryAssetsAtom,
@@ -51,7 +50,7 @@ import { Markdown } from 'molstar/lib/mol-plugin-ui/controls/markdown';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { Scheduler } from 'molstar/lib/mol-task';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState, type RefObject } from 'react';
 import { Label } from '../ui/label';
 import { SceneCodeEditor } from './editors/SceneCodeEditor';
 import { SceneMarkdownEditor } from './editors/SceneMarkdownEditor';
@@ -66,7 +65,7 @@ import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
 import { snapshotToCameraParams } from '@mol-view-stories/state-builder/src';
 import { LLMContext } from './editors/llm-context';
-import { UIBuilder } from './ui-builder';
+import { UIBuilder, UIBuilderProvider, type UIBuilderHandle } from '@mol-view-stories/state-builder-ui/src';
 
 function Vector({ value, className }: { value?: Vec3 | number[]; title?: string; className?: string }) {
   return (
@@ -186,19 +185,13 @@ function copyFovAdjustedCameraToClipboard(snapshot: Camera.Snapshot | CameraData
   copyToClipboard(text, 'Camera position');
 }
 
-function CameraActions() {
+function CameraActions({ builderRef }: { builderRef: RefObject<UIBuilderHandle | null> }) {
   const cameraSnapshot = useAtomValue(CameraPositionAtom);
   const scene = useAtomValue(ActiveSceneAtom);
-  const activeSceneId = useAtomValue(ActiveSceneIdAtom);
-  const [allCameras, setAllCameras] = useAtom(UIBuilderCameraAtom);
 
   const sendToBuilder = () => {
     if (!cameraSnapshot) return;
-    const sceneKey = activeSceneId || 'default';
-    setAllCameras({
-      ...allCameras,
-      [sceneKey]: snapshotToCameraParams(cameraSnapshot as CameraData),
-    });
+    builderRef.current?.setCamera(snapshotToCameraParams(cameraSnapshot as CameraData));
   };
 
   return (
@@ -271,10 +264,10 @@ function CameraActions() {
   );
 }
 
-function CodeUIControls() {
+function CodeUIControls({ builderRef }: { builderRef: RefObject<UIBuilderHandle | null> }) {
   return (
     <div className='flex items-center gap-2'>
-      <CameraActions />
+      <CameraActions builderRef={builderRef} />
       <AssetList />
       <div className='m-auto' />
       <Button
@@ -583,15 +576,18 @@ function SceneMarkdownEditorSection() {
 }
 
 function SceneCodeEditorSection() {
+  const builderRef = useRef<UIBuilderHandle>(null);
   const scene = useAtomValue(ActiveSceneAtom);
   const story = useAtomValue(StoryAtom);
+  const activeSceneId = useAtomValue(ActiveSceneIdAtom);
+  const cameraSnapshot = useAtomValue(CameraPositionAtom);
   const [viewMode, setViewMode] = useState<'code' | 'builder'>('code');
 
   return (
     <div className='flex flex-col h-full gap-2'>
       <div className='flex gap-6 items-center'>
         <div className='flex-1'>
-          <CodeUIControls />
+          <CodeUIControls builderRef={builderRef} />
         </div>
         <div className='flex-1'>
           <CameraState />
@@ -631,12 +627,16 @@ function SceneCodeEditorSection() {
             </>
           ) : (
             <div className='border rounded flex-1 relative overflow-hidden'>
-              <UIBuilder
-                onCodeGenerated={(code) => {
-                  modifyCurrentScene({ javascript: code });
-                }}
+              <UIBuilderProvider
+                ref={builderRef}
+                sceneKey={activeSceneId || 'default'}
                 plugin={_modelInstance?.plugin}
-              />
+                cameraSnapshot={cameraSnapshot}
+                onCodeGenerated={(code) => modifyCurrentScene({ javascript: code })}
+                onNotification={(n) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
+              >
+                <UIBuilder />
+              </UIBuilderProvider>
             </div>
           )}
         </div>

@@ -3,6 +3,8 @@
 
 @plugin "@tailwindcss/typography";
 
+@source "../../../../@mol-view-stories/state-builder-ui/src";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
