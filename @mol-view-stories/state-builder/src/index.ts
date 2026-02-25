@@ -153,6 +153,8 @@ export {
   isValidRotationMatrix,
   mulMat3Vec3,
   projectIsometric,
+  composeTransformMatrix,
+  decomposeTransformMatrix,
 } from './types/transform-params';
 
 // Export camera parameter types and utilities

@@ -14,7 +14,7 @@ interface AnimationSectionProps {
 }
 
 export function AnimationSection({ animation, onAnimationChange, availableRefs }: AnimationSectionProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   const stepCount = animation?.steps.length ?? 0;
   const totalDuration = animation ? computeAnimationDuration(animation.steps) : 0;

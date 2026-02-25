@@ -20,7 +20,7 @@ function formatVec3(v: [number, number, number]): string {
 }
 
 export function CameraSection({ camera, onCameraChange }: CameraSectionProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const cameraSnapshot = useAtomValue(CameraPositionAtom);
 
   const captureFromViewer = () => {

@@ -517,7 +517,6 @@ function SimpleValueFields({
               value={startColor.startsWith('#') ? startColor : '#808080'}
               onChange={(e) => onUpdate({ start: e.target.value as unknown as number })}
             />
-            <div className='w-7 h-7 rounded border' style={{ backgroundColor: startColor || '#808080' }} />
           </div>
         </div>
         <div className='flex-1 space-y-0.5'>
@@ -535,7 +534,6 @@ function SimpleValueFields({
               value={endColor.startsWith('#') ? endColor : '#808080'}
               onChange={(e) => onUpdate({ end: e.target.value as unknown as number })}
             />
-            <div className='w-7 h-7 rounded border' style={{ backgroundColor: endColor || '#808080' }} />
           </div>
         </div>
       </div>

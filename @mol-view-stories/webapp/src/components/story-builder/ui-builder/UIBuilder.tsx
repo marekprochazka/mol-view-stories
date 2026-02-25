@@ -97,7 +97,7 @@ export function UIBuilder({ onCodeGenerated, plugin }: UIBuilderProps) {
 
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
-  const [constantsExpanded, setConstantsExpanded] = useState(true);
+  const [constantsExpanded, setConstantsExpanded] = useState(false);
 
   const addNode = () => {
     const [newNode] = assignMissingRefs([createDownloadParseNodes()], nodes);

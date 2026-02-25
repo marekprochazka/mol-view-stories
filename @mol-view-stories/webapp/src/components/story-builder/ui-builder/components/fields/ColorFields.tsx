@@ -185,11 +185,6 @@ export function ColorFields({
               onChange={(e) => handleSimpleColorChange(e.target.value)}
               title='Pick color'
             />
-            <div
-              className='w-8 h-8 rounded border border-gray-300'
-              style={{ backgroundColor: simpleColor || '#808080' }}
-              title={simpleColor || 'No color set'}
-            />
           </div>
         </div>
       )}
@@ -247,11 +242,6 @@ export function ColorFields({
                       value={carbonColorHex}
                       onChange={(e) => handleCarbonColorValueChange(e.target.value)}
                       title='Pick carbon color'
-                    />
-                    <div
-                      className='w-8 h-8 rounded border border-gray-300'
-                      style={{ backgroundColor: carbonColorHex }}
-                      title={`${carbonColorValue ?? 'N/A'} (${carbonColorHex})`}
                     />
                   </div>
                 </div>
