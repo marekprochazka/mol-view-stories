@@ -4,18 +4,16 @@ import { ColorHelper } from '../../ColorHelper';
 
 interface ColorFieldsProps {
   params: Record<string, unknown>;
-  onChange: (params: Record<string, unknown>) => void;
   custom?: Record<string, unknown>;
-  onCustomChange?: (custom: Record<string, unknown> | undefined) => void;
   availableConstants?: ConstantDefinition[];
+  onApply: (params: Record<string, unknown>, custom: Record<string, unknown> | undefined) => void;
 }
 
 export function ColorFields({
   params,
-  onChange,
   custom,
-  onCustomChange,
   availableConstants = [],
+  onApply,
 }: ColorFieldsProps) {
   return (
     <div className='flex-1'>
@@ -24,10 +22,7 @@ export function ColorFields({
         params={params}
         custom={custom}
         availableConstants={availableConstants}
-        onApply={(newParams, newCustom) => {
-          onChange(newParams);
-          onCustomChange?.(newCustom);
-        }}
+        onApply={onApply}
       />
     </div>
   );

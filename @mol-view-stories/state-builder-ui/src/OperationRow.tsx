@@ -168,10 +168,9 @@ export function OperationRow({
         return (
           <ColorFields
             params={node.params}
-            onChange={handleParamsChange}
             custom={node.custom}
-            onCustomChange={handleCustomChange}
             availableConstants={availableConstants}
+            onApply={(newParams, newCustom) => onUpdate({ params: newParams, custom: newCustom })}
           />
         );
 
