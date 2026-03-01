@@ -6,6 +6,7 @@ export { CameraHelper } from './CameraHelper';
 export { AnimationHelper } from './AnimationHelper';
 export { TransformHelper } from './TransformHelper';
 export { ColorHelper } from './ColorHelper';
+export { FocusHelper } from './FocusHelper';
 export { OperationRow } from './OperationRow';
 export { TreeLines } from './components/TreeLines';
 export { OperationActions } from './components/OperationActions';

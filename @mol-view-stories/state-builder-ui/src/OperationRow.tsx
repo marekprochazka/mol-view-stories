@@ -24,6 +24,7 @@ import {
   PrimitivesFields,
   OpacityFields,
   CameraFields,
+  FocusFields,
 } from './components/fields';
 
 interface OperationRowProps {
@@ -188,6 +189,9 @@ export function OperationRow({
 
       case 'camera':
         return <CameraFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'focus':
+        return <FocusFields params={node.params} onChange={handleParamsChange} />;
 
       default:
         return null;

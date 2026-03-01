@@ -8,3 +8,4 @@ export { LabelFields } from './LabelFields';
 export { PrimitivesFields } from './PrimitivesFields';
 export { OpacityFields } from './OpacityFields';
 export { CameraFields } from './CameraFields';
+export { FocusFields } from './FocusFields';

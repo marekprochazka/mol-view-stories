@@ -1,0 +1,83 @@
+{
+  "kind": "root",
+  "children": [
+    {
+      "kind": "download",
+      "params": {
+        "url": "https://www.ebi.ac.uk/pdbe/entry-files/1cbs.bcif"
+      },
+      "children": [
+        {
+          "kind": "parse",
+          "params": {
+            "format": "bcif"
+          },
+          "children": [
+            {
+              "kind": "structure",
+              "params": {
+                "type": "model"
+              },
+              "children": [
+                {
+                  "kind": "component",
+                  "params": {
+                    "selector": "polymer"
+                  },
+                  "children": [
+                    {
+                      "kind": "representation",
+                      "params": {
+                        "type": "cartoon"
+                      },
+                      "children": [
+                        {
+                          "kind": "color",
+                          "params": {
+                            "color": "green"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "component",
+                  "params": {
+                    "selector": "ligand"
+                  },
+                  "children": [
+                    {
+                      "kind": "label",
+                      "params": {
+                        "text": "Retinoic Acid"
+                      }
+                    },
+                    {
+                      "kind": "focus",
+                      "params": {}
+                    },
+                    {
+                      "kind": "representation",
+                      "params": {
+                        "type": "ball_and_stick"
+                      },
+                      "children": [
+                        {
+                          "kind": "color",
+                          "params": {
+                            "color": "#cc3399"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
