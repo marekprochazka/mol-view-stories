@@ -242,10 +242,9 @@ export function UIBuilder() {
 
       console.log('Generated code:', code);
 
-      // Call the callback if provided
+      // Call the callback if provided — notification is the caller's responsibility
       if (onCodeGenerated) {
         onCodeGenerated(code);
-        notify({ type: 'success', message: 'Code generated and applied to editor!' });
       } else {
         notify({ type: 'success', message: 'Code generated successfully! (no callback provided)' });
       }

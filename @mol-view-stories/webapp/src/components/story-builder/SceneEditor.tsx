@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn, copyToClipboard, SingleTaskQueue } from '@/lib/utils';
 import { atom, getDefaultStore, useAtom, useAtomValue, useStore } from 'jotai/index';
 import {
+  ArrowRightIcon,
   Axis3D,
   BoltIcon,
   BoxIcon,
@@ -64,10 +65,25 @@ import Link from 'next/link';
 import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
 import { snapshotToCameraParams } from '@mol-view-stories/state-builder/src';
+import { BuilderLib } from '@mol-view-stories/lib/src/utils';
 import { LLMContext } from './editors/llm-context';
 import { UIBuilder, UIBuilderProvider, type UIBuilderHandle, type UIBuilderSnapshot } from '@mol-view-stories/state-builder-ui/src';
 import type { ConstantDefinition } from '@mol-view-stories/state-builder/src';
+import {
+  evaluateCodeToMVSTree,
+  mvsTreeToUINodes,
+  extractCameraFromUINodes,
+  extractAnimationFromUINodes,
+  assignMissingRefs,
+} from '@mol-view-stories/state-builder/src';
 import { modifyStoryConstants } from '@/app/state/actions';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 function Vector({ value, className }: { value?: Vec3 | number[]; title?: string; className?: string }) {
   return (
@@ -584,6 +600,48 @@ function SceneCodeEditorSection() {
   const activeSceneId = useAtomValue(ActiveSceneIdAtom);
   const cameraSnapshot = useAtomValue(CameraPositionAtom);
   const [viewMode, setViewMode] = useState<'code' | 'builder'>('code');
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
+  const [codeOrigin, setCodeOrigin] = useState<'user' | 'generated' | null>(null);
+  const [pendingGeneratedCode, setPendingGeneratedCode] = useState<string | null>(null);
+
+  // Reset origin when switching scenes
+  useEffect(() => { setCodeOrigin(null); }, [activeSceneId]);
+
+  const applyGeneratedCode = (code: string) => {
+    modifyCurrentScene({ javascript: code });
+    setCodeOrigin('generated');
+    setPendingGeneratedCode(null);
+    toast.success('Code generated and applied to editor.');
+  };
+
+  const handleCodeGenerated = (code: string) => {
+    if (codeOrigin === 'user') {
+      setPendingGeneratedCode(code);
+    } else {
+      applyGeneratedCode(code);
+    }
+  };
+
+  const handleSyncToBuilder = () => {
+    const allConstants = (story.ui_builder_constants as ConstantDefinition[] | undefined) ?? [];
+    const tree = evaluateCodeToMVSTree(scene?.javascript ?? '', {
+      constants: allConstants,
+      storyCode: story.javascript ?? '',
+      extraScope: BuilderLib,
+    });
+    if (!tree) {
+      toast.error('Could not parse code into builder state. Make sure the code uses the builder API.');
+      return;
+    }
+    const uiNodes = mvsTreeToUINodes(tree);
+    const { nodes: noCamera, camera } = extractCameraFromUINodes(uiNodes);
+    const { nodes, animation } = extractAnimationFromUINodes(noCamera);
+    const withRefs = assignMissingRefs(nodes, []);
+    builderRef.current?.setState({ nodes: withRefs, camera, animation });
+    setViewMode('builder');
+    setSyncDialogOpen(false);
+    toast.success('Builder state updated from code.');
+  };
 
   return (
     <div className='flex flex-col h-full gap-2'>
@@ -612,14 +670,59 @@ function SceneCodeEditorSection() {
             >
               UI Builder
             </Button>
+            {viewMode === 'code' && (
+              <Button size='sm' variant='ghost' onClick={() => setSyncDialogOpen(true)} title='Sync code to builder'>
+                <ArrowRightIcon className='size-4 mr-1' />
+                Sync to Builder
+              </Button>
+            )}
+            {codeOrigin === 'user' && (
+              <span className='text-xs text-amber-600 dark:text-amber-400 ml-auto' title='Code was manually edited — generating from builder will reformat it'>
+                ● manually edited
+              </span>
+            )}
           </div>
+          <Dialog open={pendingGeneratedCode !== null} onOpenChange={(open) => { if (!open) setPendingGeneratedCode(null); }}>
+            <DialogContent className='sm:max-w-md'>
+              <DialogHeader>
+                <DialogTitle>Overwrite Manually Edited Code?</DialogTitle>
+              </DialogHeader>
+              <div className='text-sm text-muted-foreground space-y-2'>
+                <p>The code editor contains manually written code. Generating from the builder will replace it with compiler-normalised output.</p>
+                <p>⚠️ Formatting, helper functions, and custom structure will be lost.</p>
+                <p>This action cannot be undone.</p>
+              </div>
+              <DialogFooter>
+                <Button variant='outline' onClick={() => setPendingGeneratedCode(null)}>Keep My Code</Button>
+                <Button onClick={() => pendingGeneratedCode !== null && applyGeneratedCode(pendingGeneratedCode)}>
+                  Overwrite with Generated Code
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen}>
+            <DialogContent className='sm:max-w-md'>
+              <DialogHeader>
+                <DialogTitle>Sync Code to Builder?</DialogTitle>
+              </DialogHeader>
+              <div className='text-sm text-muted-foreground space-y-2'>
+                <p>This will overwrite the current UI Builder state by interpreting your code.</p>
+                <p>⚠️ If you later click <strong>Generate Code</strong> in the builder, the output will be reformatted by the compiler and may look different from your original code.</p>
+                <p>This action cannot be undone.</p>
+              </div>
+              <DialogFooter>
+                <Button variant='outline' onClick={() => setSyncDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleSyncToBuilder}>Sync to Builder</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           {/* Code editor — always mounted to avoid losing editor state; hidden when in builder mode */}
           <div className={cn('flex flex-col flex-1 gap-2', viewMode !== 'code' && 'hidden')}>
             <div className='border rounded flex-1 relative'>
               <SceneCodeEditor
                 value={scene?.javascript || ''}
                 commonCode={story.javascript || ''}
-                onSave={(code) => modifyCurrentScene({ javascript: code })}
+                onSave={(code) => { modifyCurrentScene({ javascript: code }); setCodeOrigin('user'); }}
               />
             </div>
             <div className='flex gap-2'>
@@ -640,7 +743,7 @@ function SceneCodeEditorSection() {
               onStoryConstantsChange={(constants) => modifyStoryConstants(constants)}
               plugin={_modelInstance?.plugin}
               cameraSnapshot={cameraSnapshot}
-              onCodeGenerated={(code) => modifyCurrentScene({ javascript: code })}
+              onCodeGenerated={handleCodeGenerated}
               onNotification={(n) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
             >
               <UIBuilder />

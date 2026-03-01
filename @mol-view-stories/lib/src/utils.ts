@@ -15,7 +15,7 @@ import { formatMolScript } from 'molstar/lib/mol-script/language/expression-form
 
 export const StoryFileExtension = '.mvstory';
 
-const BuilderLib = {
+export const BuilderLib = {
   Vec3,
   Mat3,
   Mat4,
