@@ -315,6 +315,9 @@ export function TransformHelper({ onApply, initialValue }: TransformHelperProps)
           >
             Cancel
           </Button>
+          <Button variant='ghost' onClick={resetState}>
+            Clear All
+          </Button>
           <Button onClick={handleApply}>
             Apply Transform
           </Button>

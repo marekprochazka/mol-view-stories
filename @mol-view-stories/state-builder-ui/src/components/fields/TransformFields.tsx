@@ -1,6 +1,8 @@
 import { Label } from '../../ui/label';
+import { Button } from '../../ui/button';
 import { TransformHelper } from '../../TransformHelper';
 import type { TransformParams } from '../../transform-helper';
+import { XIcon } from 'lucide-react';
 
 interface TransformFieldsProps {
   params: Record<string, unknown>;
@@ -8,6 +10,8 @@ interface TransformFieldsProps {
 }
 
 export function TransformFields({ params, onChange }: TransformFieldsProps) {
+  const hasTransform = !!(params.rotation || params.translation || params.rotation_center || params.matrix);
+
   const handleTransformApply = (transform: TransformParams) => {
     const newParams: Record<string, unknown> = { ...params };
 
@@ -38,13 +42,34 @@ export function TransformFields({ params, onChange }: TransformFieldsProps) {
     onChange(newParams);
   };
 
+  const handleClear = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { rotation, translation, rotation_center, matrix, ...rest } = params;
+    onChange(rest);
+  };
+
   return (
     <div className='flex-1'>
       <Label className='text-xs'>Transform</Label>
-      <TransformHelper
-        onApply={handleTransformApply}
-        initialValue={params}
-      />
+      <div className='flex gap-1'>
+        <div className='flex-1'>
+          <TransformHelper
+            onApply={handleTransformApply}
+            initialValue={params}
+          />
+        </div>
+        {hasTransform && (
+          <Button
+            size='sm'
+            variant='ghost'
+            onClick={handleClear}
+            title='Clear transform'
+            className='h-8 px-2'
+          >
+            <XIcon className='size-4' />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

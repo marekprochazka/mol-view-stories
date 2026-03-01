@@ -611,34 +611,33 @@ function SceneCodeEditorSection() {
               UI Builder
             </Button>
           </div>
-          {viewMode === 'code' ? (
-            <>
-              <div className='border rounded flex-1 relative'>
-                <SceneCodeEditor
-                  value={scene?.javascript || ''}
-                  commonCode={story.javascript || ''}
-                  onSave={(code) => modifyCurrentScene({ javascript: code })}
-                />
-              </div>
-              <div className='flex gap-2'>
-                <PressToSave />
-                <PressToCodeComplete />
-              </div>
-            </>
-          ) : (
-            <div className='border rounded flex-1 relative overflow-hidden'>
-              <UIBuilderProvider
-                ref={builderRef}
-                sceneKey={activeSceneId || 'default'}
-                plugin={_modelInstance?.plugin}
-                cameraSnapshot={cameraSnapshot}
-                onCodeGenerated={(code) => modifyCurrentScene({ javascript: code })}
-                onNotification={(n) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
-              >
-                <UIBuilder />
-              </UIBuilderProvider>
+          {/* Code editor — always mounted to avoid losing editor state; hidden when in builder mode */}
+          <div className={cn('flex flex-col flex-1 gap-2', viewMode !== 'code' && 'hidden')}>
+            <div className='border rounded flex-1 relative'>
+              <SceneCodeEditor
+                value={scene?.javascript || ''}
+                commonCode={story.javascript || ''}
+                onSave={(code) => modifyCurrentScene({ javascript: code })}
+              />
             </div>
-          )}
+            <div className='flex gap-2'>
+              <PressToSave />
+              <PressToCodeComplete />
+            </div>
+          </div>
+          {/* Builder — always mounted so Jotai store survives tab switches; hidden when in code mode */}
+          <div className={cn('border rounded flex-1 relative overflow-hidden', viewMode !== 'builder' && 'hidden')}>
+            <UIBuilderProvider
+              ref={builderRef}
+              sceneKey={activeSceneId || 'default'}
+              plugin={_modelInstance?.plugin}
+              cameraSnapshot={cameraSnapshot}
+              onCodeGenerated={(code) => modifyCurrentScene({ javascript: code })}
+              onNotification={(n) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
+            >
+              <UIBuilder />
+            </UIBuilderProvider>
+          </div>
         </div>
         <div className='flex-1 shrink-0'>
           <div className='w-full' style={{ aspectRatio: '1.33/1' }}>

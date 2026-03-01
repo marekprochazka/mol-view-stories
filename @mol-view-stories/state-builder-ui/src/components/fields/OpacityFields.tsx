@@ -1,4 +1,3 @@
-import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 
 interface OpacityFieldsProps {
@@ -8,27 +7,20 @@ interface OpacityFieldsProps {
 
 export function OpacityFields({ params, onChange }: OpacityFieldsProps) {
   const opacity = (params.opacity as number) ?? 1.0;
-
-  const handleOpacityChange = (value: string) => {
-    const numValue = parseFloat(value);
-    // Clamp to 0-1 range
-    const clampedValue = Math.max(0, Math.min(1, isNaN(numValue) ? 1 : numValue));
-    onChange({ ...params, opacity: clampedValue });
-  };
+  const pct = Math.round(opacity * 100);
 
   return (
-    <div className='w-32'>
-      <Label className='text-xs'>Opacity (0-1)</Label>
-      <Input
-        className='h-8 text-sm'
-        type='number'
+    <div className='w-40'>
+      <Label className='text-xs'>Opacity ({pct}%)</Label>
+      <input
+        type='range'
         min='0'
-        max='1'
-        step='0.1'
-        placeholder='1.0'
-        value={opacity}
-        onChange={(e) => handleOpacityChange(e.target.value)}
-        title='0.0 = fully transparent, 1.0 = fully opaque'
+        max='100'
+        step='1'
+        value={pct}
+        onChange={(e) => onChange({ ...params, opacity: parseInt(e.target.value) / 100 })}
+        className='w-full mt-2 accent-primary cursor-pointer'
+        title={`Opacity: ${opacity.toFixed(2)}`}
       />
     </div>
   );
