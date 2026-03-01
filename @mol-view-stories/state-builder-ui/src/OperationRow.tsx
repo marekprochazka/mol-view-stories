@@ -25,6 +25,8 @@ import {
   OpacityFields,
   CameraFields,
   FocusFields,
+  CanvasFields,
+  TooltipFields,
 } from './components/fields';
 
 interface OperationRowProps {
@@ -192,6 +194,12 @@ export function OperationRow({
 
       case 'focus':
         return <FocusFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'canvas':
+        return <CanvasFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'tooltip':
+        return <TooltipFields params={node.params} onChange={handleParamsChange} />;
 
       default:
         return null;

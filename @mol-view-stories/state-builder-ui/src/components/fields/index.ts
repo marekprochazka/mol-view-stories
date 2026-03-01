@@ -9,3 +9,5 @@ export { PrimitivesFields } from './PrimitivesFields';
 export { OpacityFields } from './OpacityFields';
 export { CameraFields } from './CameraFields';
 export { FocusFields } from './FocusFields';
+export { CanvasFields } from './CanvasFields';
+export { TooltipFields } from './TooltipFields';
