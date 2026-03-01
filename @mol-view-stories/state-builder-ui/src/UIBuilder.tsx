@@ -122,10 +122,14 @@ export function UIBuilder() {
   const addConstant = () => {
     const newConstant = createEmptyConstant('colors');
     setConstants([...constants, newConstant]);
-    // Expand constants section when adding
-    if (!constantsExpanded) {
-      setConstantsExpanded(true);
-    }
+    if (!constantsExpanded) setConstantsExpanded(true);
+  };
+
+  const addStoryConstant = () => {
+    if (!onStoryConstantsChange) return;
+    const newConstant = createEmptyConstant('colors');
+    onStoryConstantsChange([...storyConstants, newConstant]);
+    if (!storyConstantsExpanded) setStoryConstantsExpanded(true);
   };
 
   const updateNode = (id: string, updates: Partial<UINode>) => {
@@ -353,8 +357,13 @@ export function UIBuilder() {
                 Empty Node
               </DropdownMenuItem>
               <DropdownMenuItem onClick={addConstant}>
-                Constant
+                Scene Constant
               </DropdownMenuItem>
+              {onStoryConstantsChange && (
+                <DropdownMenuItem onClick={addStoryConstant}>
+                  Story Constant
+                </DropdownMenuItem>
+              )}
               {getTemplatesForParentKind('root').length > 0 && (
                 <>
                   <DropdownMenuSeparator />
