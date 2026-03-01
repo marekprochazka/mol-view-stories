@@ -3,6 +3,8 @@
 import { SceneKeyAtom, UIBuilderAnimationAtom, UIBuilderCameraAtom, UIBuilderConstantsAtom, UIBuilderNodesAtom, PluginAtom } from './state/atoms';
 import { useNotify } from './state/notifications';
 import { useCodeGenCallback } from './state/codegen-context';
+import { useStateChangeCallback } from './state/state-change-context';
+import { useStoryConstants } from './state/story-constants-context';
 import type { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { Button } from './ui/button';
 import {
@@ -26,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { UploadIcon, PlusIcon, ChevronDownIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { OperationRow } from './OperationRow';
 import { AnimationSection } from './AnimationSection';
 import { CameraSection } from './CameraSection';
@@ -87,6 +89,23 @@ export function UIBuilder() {
   const setAnimation = (newAnimation: AnimationParams | null) => {
     setAllAnimations({ ...allAnimations, [sceneKey]: newAnimation });
   };
+
+  // Story-wide constants (from context)
+  const { storyConstants, onStoryConstantsChange } = useStoryConstants();
+  const [storyConstantsExpanded, setStoryConstantsExpanded] = useState(false);
+
+  // Merged constants for OperationRow dropdowns (story constants first)
+  const allAvailableConstants = useMemo(() => [...storyConstants, ...constants], [storyConstants, constants]);
+
+  // Debounced save: persist current scene state to the caller
+  const onStateChange = useStateChangeCallback();
+  useEffect(() => {
+    if (!onStateChange) return;
+    const timer = setTimeout(() => {
+      onStateChange({ nodes, constants, camera, animation });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [nodes, constants, camera, animation, onStateChange]);
 
   // Available refs from the node tree (for animation target_ref dropdowns)
   const availableRefs = useMemo(() => extractRefsFromNodes(nodes), [nodes]);
@@ -161,7 +180,7 @@ export function UIBuilder() {
     setNodes(newNodes);
   };
 
-  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = constants, cameraToInclude: CameraParams | null = camera, animationToInclude: AnimationParams | null = animation) => {
+  const generateCodeFromNodes = (nodesToGenerate: UINode[], constantsToInclude: ConstantDefinition[] = [...storyConstants, ...constants], cameraToInclude: CameraParams | null = camera, animationToInclude: AnimationParams | null = animation) => {
     try {
       if (nodesToGenerate.length === 0) {
         notify({ type: 'error', message: 'No nodes to generate code from. Add nodes or import an MVSTree first.' });
@@ -277,7 +296,7 @@ export function UIBuilder() {
 
       // Auto-generate code after import
       setTimeout(() => {
-        generateCodeFromNodes(nodesWithRefs, constants, cameraExtracted.camera ?? camera, animExtracted.animation ?? animation);
+        generateCodeFromNodes(nodesWithRefs, [...storyConstants, ...constants], cameraExtracted.camera ?? camera, animExtracted.animation ?? animation);
       }, 0);
     } catch (error) {
       notify({ type: 'error', message: `Import failed: ${error instanceof Error ? error.message : String(error)}` });
@@ -362,8 +381,21 @@ export function UIBuilder() {
       </div>
 
       <div className='flex-1 min-h-0 overflow-y-auto space-y-2 pb-20'>
-        {/* Constants Section */}
+        {/* Story-wide constants — always visible if any exist or editing is enabled */}
+        {(storyConstants.length > 0 || onStoryConstantsChange) && (
+          <ConstantsSection
+            label='Story Constants'
+            constants={storyConstants}
+            expanded={storyConstantsExpanded}
+            onToggleExpanded={() => setStoryConstantsExpanded((v) => !v)}
+            onConstantsChange={onStoryConstantsChange ?? (() => {})}
+            readOnly={!onStoryConstantsChange}
+          />
+        )}
+
+        {/* Scene Constants */}
         <ConstantsSection
+          label='Scene Constants'
           constants={constants}
           expanded={constantsExpanded}
           onToggleExpanded={() => setConstantsExpanded(!constantsExpanded)}
@@ -435,7 +467,7 @@ export function UIBuilder() {
               onCopy={() => copyNode(node.id)}
               onMoveUp={() => moveNodeUp(node.id)}
               onMoveDown={() => moveNodeDown(node.id)}
-              availableConstants={constants}
+              availableConstants={allAvailableConstants}
               allowedKinds={getValidChildren('root')}
               allNodes={nodes}
             />

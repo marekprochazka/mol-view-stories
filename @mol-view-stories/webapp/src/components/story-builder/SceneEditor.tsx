@@ -65,7 +65,9 @@ import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
 import { snapshotToCameraParams } from '@mol-view-stories/state-builder/src';
 import { LLMContext } from './editors/llm-context';
-import { UIBuilder, UIBuilderProvider, type UIBuilderHandle } from '@mol-view-stories/state-builder-ui/src';
+import { UIBuilder, UIBuilderProvider, type UIBuilderHandle, type UIBuilderSnapshot } from '@mol-view-stories/state-builder-ui/src';
+import type { ConstantDefinition } from '@mol-view-stories/state-builder/src';
+import { modifyStoryConstants } from '@/app/state/actions';
 
 function Vector({ value, className }: { value?: Vec3 | number[]; title?: string; className?: string }) {
   return (
@@ -630,6 +632,12 @@ function SceneCodeEditorSection() {
             <UIBuilderProvider
               ref={builderRef}
               sceneKey={activeSceneId || 'default'}
+              sceneInitialState={scene?.ui_builder_state as Partial<UIBuilderSnapshot> | undefined}
+              onStateChange={(snapshot) =>
+                modifyCurrentScene({ ui_builder_state: snapshot as unknown as Record<string, unknown> })
+              }
+              storyConstants={story.ui_builder_constants as ConstantDefinition[] | undefined}
+              onStoryConstantsChange={(constants) => modifyStoryConstants(constants)}
               plugin={_modelInstance?.plugin}
               cameraSnapshot={cameraSnapshot}
               onCodeGenerated={(code) => modifyCurrentScene({ javascript: code })}

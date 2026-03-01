@@ -16,6 +16,8 @@ interface ConstantsSectionProps {
   expanded: boolean;
   onToggleExpanded: () => void;
   onConstantsChange: (constants: ConstantDefinition[]) => void;
+  label?: string;
+  readOnly?: boolean;
 }
 
 export function ConstantsSection({
@@ -23,6 +25,8 @@ export function ConstantsSection({
   expanded,
   onToggleExpanded,
   onConstantsChange,
+  label = 'Constants',
+  readOnly = false,
 }: ConstantsSectionProps) {
   const updateConstant = (id: string, updates: Partial<ConstantDefinition>) => {
     onConstantsChange(
@@ -76,7 +80,7 @@ export function ConstantsSection({
         ) : (
           <ChevronRightIcon className='size-4' />
         )}
-        <span className='text-sm font-medium'>Constants</span>
+        <span className='text-sm font-medium'>{label}</span>
         <span className='text-xs text-muted-foreground'>({constants.length})</span>
       </div>
 
@@ -92,6 +96,7 @@ export function ConstantsSection({
               <ConstantEditor
                 key={constant.id}
                 constant={constant}
+                readOnly={readOnly}
                 onUpdate={(updates) => updateConstant(constant.id, updates)}
                 onRemove={() => removeConstant(constant.id)}
                 onUpdateEntry={(idx, updates) => updateEntry(constant.id, idx, updates)}
@@ -108,6 +113,7 @@ export function ConstantsSection({
 
 interface ConstantEditorProps {
   constant: ConstantDefinition;
+  readOnly?: boolean;
   onUpdate: (updates: Partial<ConstantDefinition>) => void;
   onRemove: () => void;
   onUpdateEntry: (index: number, updates: Partial<ConstantEntry>) => void;
@@ -117,6 +123,7 @@ interface ConstantEditorProps {
 
 function ConstantEditor({
   constant,
+  readOnly = false,
   onUpdate,
   onRemove,
   onUpdateEntry,
@@ -129,42 +136,51 @@ function ConstantEditor({
     <div className='border rounded-md p-2 bg-card space-y-2'>
       {/* First row: Type, Name, Remove */}
       <div className='flex gap-2 items-end'>
-        <div className='w-28'>
-          <Label className='text-xs'>Type</Label>
-          <Select
-            value={constant.type}
-            onValueChange={(value) => onUpdate({ type: value as ConstantType })}
-          >
-            <SelectTrigger size='sm'>
-              <SelectValue placeholder='Type' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='colors'>Colors</SelectItem>
-              <SelectItem value='urls'>URLs</SelectItem>
-              <SelectItem value='generic'>Generic</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {readOnly ? (
+          <div className='flex-1'>
+            <span className='text-sm font-medium'>{constant.name}</span>
+            <span className='text-xs text-muted-foreground ml-2'>({constant.type})</span>
+          </div>
+        ) : (
+          <>
+            <div className='w-28'>
+              <Label className='text-xs'>Type</Label>
+              <Select
+                value={constant.type}
+                onValueChange={(value) => onUpdate({ type: value as ConstantType })}
+              >
+                <SelectTrigger size='sm'>
+                  <SelectValue placeholder='Type' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='colors'>Colors</SelectItem>
+                  <SelectItem value='urls'>URLs</SelectItem>
+                  <SelectItem value='generic'>Generic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className='flex-1'>
-          <Label className='text-xs'>Name</Label>
-          <Input
-            className='h-8 text-sm'
-            placeholder='e.g., Colors'
-            value={constant.name}
-            onChange={(e) => onUpdate({ name: e.target.value })}
-          />
-        </div>
+            <div className='flex-1'>
+              <Label className='text-xs'>Name</Label>
+              <Input
+                className='h-8 text-sm'
+                placeholder='e.g., Colors'
+                value={constant.name}
+                onChange={(e) => onUpdate({ name: e.target.value })}
+              />
+            </div>
 
-        <Button
-          variant='ghost'
-          size='sm'
-          onClick={onRemove}
-          className='h-8 w-8 p-0'
-          title='Remove constant'
-        >
-          <XIcon className='size-4' />
-        </Button>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={onRemove}
+              className='h-8 w-8 p-0'
+              title='Remove constant'
+            >
+              <XIcon className='size-4' />
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Second row: Entries */}
@@ -177,42 +193,50 @@ function ConstantEditor({
                 className='h-8 text-sm w-32'
                 placeholder='Key'
                 value={entry.key}
-                onChange={(e) => onUpdateEntry(idx, { key: e.target.value })}
+                readOnly={readOnly}
+                onChange={readOnly ? undefined : (e) => onUpdateEntry(idx, { key: e.target.value })}
               />
               <Input
                 className='h-8 text-sm flex-1'
                 placeholder={isColorType ? '#4577B2' : 'Value'}
                 value={entry.value}
-                onChange={(e) => onUpdateEntry(idx, { value: e.target.value })}
+                readOnly={readOnly}
+                onChange={readOnly ? undefined : (e) => onUpdateEntry(idx, { value: e.target.value })}
               />
               {isColorType && (
                 <input
                   type='color'
-                  className='w-8 h-8 rounded border border-gray-300 cursor-pointer'
+                  className='w-8 h-8 rounded border border-gray-300'
+                  style={{ cursor: readOnly ? 'default' : 'pointer' }}
                   value={entry.value || '#000000'}
-                  onChange={(e) => onUpdateEntry(idx, { value: e.target.value })}
+                  disabled={readOnly}
+                  onChange={readOnly ? undefined : (e) => onUpdateEntry(idx, { value: e.target.value })}
                   title={entry.value}
                 />
               )}
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => onRemoveEntry(idx)}
-                className='h-8 w-8 p-0'
-              >
-                <XIcon className='size-4' />
-              </Button>
+              {!readOnly && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => onRemoveEntry(idx)}
+                  className='h-8 w-8 p-0'
+                >
+                  <XIcon className='size-4' />
+                </Button>
+              )}
             </div>
           ))}
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={onAddEntry}
-            className='h-8'
-          >
-            <PlusIcon className='size-4 mr-1' />
-            Add Entry
-          </Button>
+          {!readOnly && (
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onAddEntry}
+              className='h-8'
+            >
+              <PlusIcon className='size-4 mr-1' />
+              Add Entry
+            </Button>
+          )}
         </div>
       </div>
     </div>
