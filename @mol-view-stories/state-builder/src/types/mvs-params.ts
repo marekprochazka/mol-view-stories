@@ -127,6 +127,24 @@ export const PRIMITIVE_KINDS: readonly LabeledValue<PrimitiveKind>[] = [
 ] as const;
 
 /**
+ * Label attachment positions for the primitives container.
+ * TypeScript will error if LabelAttachment changes in MVS.
+ */
+export type LabelAttachment = NonNullable<MVSNodeParams<'primitives'>['label_attachment']>;
+
+export const LABEL_ATTACHMENT_OPTIONS: readonly LabeledValue<LabelAttachment>[] = [
+  { value: 'bottom-left',   label: 'Bottom Left' },
+  { value: 'bottom-center', label: 'Bottom Center' },
+  { value: 'bottom-right',  label: 'Bottom Right' },
+  { value: 'middle-left',   label: 'Middle Left' },
+  { value: 'middle-center', label: 'Middle Center' },
+  { value: 'middle-right',  label: 'Middle Right' },
+  { value: 'top-left',      label: 'Top Left' },
+  { value: 'top-center',    label: 'Top Center' },
+  { value: 'top-right',     label: 'Top Right' },
+] as const;
+
+/**
  * Clip types with labels.
  */
 export const CLIP_TYPES: readonly LabeledValue<ClipType>[] = [

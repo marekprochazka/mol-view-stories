@@ -57,6 +57,7 @@ export type {
   VolumeRepresentationType,
   MolstarColorTheme,
   CarbonColorOption,
+  LabelAttachment,
 } from './types/mvs-params';
 export {
   STRUCTURE_TYPES,
@@ -68,6 +69,7 @@ export {
   VOLUME_REPRESENTATION_TYPES,
   MOLSTAR_COLOR_THEMES,
   CARBON_COLOR_OPTIONS,
+  LABEL_ATTACHMENT_OPTIONS,
   getActiveValues,
   isValidStructureType,
   isValidParseFormat,

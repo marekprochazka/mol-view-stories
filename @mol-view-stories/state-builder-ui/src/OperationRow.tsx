@@ -14,6 +14,7 @@ import { TreeLines } from './components/TreeLines';
 import { OperationActions } from './components/OperationActions';
 import { KindSelect } from './components/KindSelect';
 import { CompositeRow } from './CompositeRow';
+import { PrimitivesRow } from './PrimitivesRow';
 import {
   StructureFields,
   ComponentFields,
@@ -21,7 +22,6 @@ import {
   ColorFields,
   TransformFields,
   LabelFields,
-  PrimitivesFields,
   OpacityFields,
   CameraFields,
   FocusFields,
@@ -80,6 +80,25 @@ export function OperationRow({
         sequence={compositeMatch.sequence}
         rootNode={node}
         exitNode={compositeMatch.exitNode}
+        onUpdate={onUpdate}
+        onRemove={onRemove}
+        onCopy={onCopy}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        depth={depth}
+        isFirst={isFirst}
+        isLast={isLast}
+        availableConstants={availableConstants}
+        allowedKinds={allowedKinds}
+        allNodes={allNodes}
+      />
+    );
+  }
+
+  if (node.kind === 'primitives') {
+    return (
+      <PrimitivesRow
+        node={node}
         onUpdate={onUpdate}
         onRemove={onRemove}
         onCopy={onCopy}
@@ -182,9 +201,6 @@ export function OperationRow({
 
       case 'label':
         return <LabelFields params={node.params} onChange={handleParamsChange} />;
-
-      case 'primitives':
-        return <PrimitivesFields params={node.params} onChange={handleParamsChange} />;
 
       case 'opacity':
         return <OpacityFields params={node.params} onChange={handleParamsChange} />;

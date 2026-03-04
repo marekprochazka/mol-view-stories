@@ -286,6 +286,46 @@ export function mvsTreeToUINodes(tree: RawMVSTree): UINode[] {
 }
 
 /**
+ * Split a `primitives` UINode into multiple nodes grouped by the `label_attachment`
+ * value stored on individual `primitive` children (a UI-only extension).
+ * Primitives without a per-child attachment inherit the container's value.
+ * Used so a single UINode can produce multiple `.primitives()` calls in codegen.
+ */
+function expandPrimitivesInChildren(children: UINode[]): UINode[] {
+  return children.flatMap((child) => {
+    if (child.kind !== 'primitives') return [child];
+
+    const primitiveChildren = child.children ?? [];
+    const hasPerChildAttachment = primitiveChildren.some(
+      (c) => c.params.label_attachment !== undefined
+    );
+    if (!hasPerChildAttachment) return [child];
+
+    const containerAttachment = child.params.label_attachment as string | undefined;
+    const groups = new Map<string, UINode[]>();
+
+    for (const prim of primitiveChildren) {
+      const key =
+        (prim.params.label_attachment as string | undefined) ??
+        containerAttachment ??
+        '';
+      if (!groups.has(key)) groups.set(key, []);
+      const { label_attachment: _la, ...restParams } = prim.params;
+      groups.get(key)!.push({ ...prim, params: restParams });
+    }
+
+    const { label_attachment: _la, ...containerRest } = child.params;
+    return [...groups.entries()].map(([key, groupChildren], index) => ({
+      ...child,
+      // Sub-index ref so each split node gets a unique variable name in codegen.
+      ref: child.ref ? `${child.ref}_${index}` : child.ref,
+      params: key ? { ...containerRest, label_attachment: key } : containerRest,
+      children: groupChildren,
+    }));
+  });
+}
+
+/**
  * Convert UINode back to raw MVS node by stripping IDs recursively.
  *
  * @param node - UINode to convert
@@ -306,7 +346,7 @@ export function uiNodeToMVSNode(node: UINode): RawMVSNode {
   }
 
   if (node.children && node.children.length > 0) {
-    result.children = node.children.map(uiNodeToMVSNode);
+    result.children = expandPrimitivesInChildren(node.children).map(uiNodeToMVSNode);
   }
 
   return result;

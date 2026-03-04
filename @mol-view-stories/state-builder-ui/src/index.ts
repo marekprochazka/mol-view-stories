@@ -4,6 +4,7 @@ export { UIBuilder } from './UIBuilder';
 export { SelectorHelper } from './SelectorHelper';
 export { CameraHelper } from './CameraHelper';
 export { AnimationHelper } from './AnimationHelper';
+export { PrimitiveHelper } from './PrimitiveHelper';
 export { TransformHelper } from './TransformHelper';
 export { ColorHelper } from './ColorHelper';
 export { FocusHelper } from './FocusHelper';
