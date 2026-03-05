@@ -27,6 +27,8 @@ import {
   FocusFields,
   CanvasFields,
   TooltipFields,
+  VolumeFields,
+  VolumeRepresentationFields,
 } from './components/fields';
 
 interface OperationRowProps {
@@ -216,6 +218,12 @@ export function OperationRow({
 
       case 'tooltip':
         return <TooltipFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'volume':
+        return <VolumeFields params={node.params} onChange={handleParamsChange} />;
+
+      case 'volume_representation':
+        return <VolumeRepresentationFields params={node.params} onChange={handleParamsChange} />;
 
       default:
         return null;

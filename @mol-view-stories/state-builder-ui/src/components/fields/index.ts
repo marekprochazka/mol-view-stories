@@ -11,3 +11,5 @@ export { CameraFields } from './CameraFields';
 export { FocusFields } from './FocusFields';
 export { CanvasFields } from './CanvasFields';
 export { TooltipFields } from './TooltipFields';
+export { VolumeFields } from './VolumeFields';
+export { VolumeRepresentationFields } from './VolumeRepresentationFields';
