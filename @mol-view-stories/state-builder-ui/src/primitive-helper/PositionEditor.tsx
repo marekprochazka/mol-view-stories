@@ -1,10 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import type { PositionEditorState } from './types';
-import { defaultPositionState } from './types';
+import { defaultPositionState, tryParseExpressionJson } from './types';
 
 interface PositionEditorProps {
   label: string;
@@ -13,6 +14,12 @@ interface PositionEditorProps {
 }
 
 export function PositionEditor({ label, state, onChange }: PositionEditorProps) {
+  const [draft, setDraft] = useState(state.expressionJson);
+
+  // Sync draft when external state changes (mode switch, parent reset, future SelectorHelper)
+  useEffect(() => {
+    setDraft(state.expressionJson);
+  }, [state.expressionJson]);
   const isDefaultExpression = state.mode === 'expression' && state.expressionJson.trim() === '{}';
 
   const toggleMode = () => {
@@ -86,8 +93,19 @@ export function PositionEditor({ label, state, onChange }: PositionEditorProps) 
           <textarea
             className='w-full min-h-[52px] text-xs font-mono border rounded-md p-2 bg-background resize-y'
             placeholder='{}'
-            value={state.expressionJson}
-            onChange={(e) => onChange({ ...state, expressionJson: e.target.value })}
+            value={draft}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              if (tryParseExpressionJson(e.target.value) !== undefined) {
+                onChange({ ...state, expressionJson: e.target.value });
+              }
+            }}
+            onBlur={() => {
+              // Only propagate on blur if parseable; otherwise leave params unchanged
+              if (tryParseExpressionJson(draft) !== undefined) {
+                onChange({ ...state, expressionJson: draft });
+              }
+            }}
             title={`${label} ComponentExpression JSON`}
           />
           <p className='text-xs text-muted-foreground'>

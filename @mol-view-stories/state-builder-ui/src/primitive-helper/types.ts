@@ -46,15 +46,29 @@ export function positionFromParam(value: unknown): PositionEditorState {
   return defaultPositionState();
 }
 
+/**
+ * Try to parse a string as JSON, with loose fallback that handles common
+ * JavaScript object literal syntax: unquoted keys and single-quoted strings.
+ * Returns `undefined` if neither form parses successfully.
+ */
+export function tryParseExpressionJson(str: string): unknown | undefined {
+  // Strict JSON first
+  try { return JSON.parse(str); } catch { /* fall through */ }
+  // Loose: quote unquoted keys, convert single-quoted strings to double-quoted
+  try {
+    const normalized = str
+      .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+      .replace(/'([^'\\]*)'/g, '"$1"');
+    return JSON.parse(normalized);
+  } catch { /* fall through */ }
+  return undefined;
+}
+
 export function positionToParam(state: PositionEditorState): unknown {
   if (state.mode === 'vec3') {
     return [state.x, state.y, state.z];
   }
-  try {
-    return JSON.parse(state.expressionJson);
-  } catch {
-    return {};
-  }
+  return tryParseExpressionJson(state.expressionJson) ?? {};
 }
 
 /** Shared props contract for ALL primitive kind field components */
