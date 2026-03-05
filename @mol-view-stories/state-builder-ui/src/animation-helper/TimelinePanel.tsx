@@ -3,6 +3,7 @@
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { NumericInput } from '../components/NumericInput';
 import {
   Select,
   SelectContent,
@@ -96,28 +97,20 @@ export function TimelinePanel({
         <div className='grid grid-cols-2 gap-3'>
           <div className='space-y-1'>
             <Label className='text-xs'>Frame Time (ms)</Label>
-            <Input
-              type='number'
+            <NumericInput
               className='h-8 no-spinners'
               placeholder='33'
-              value={frameTimeMs ?? ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                onFrameTimeMsChange(v ? Number(v) : undefined);
-              }}
+              value={frameTimeMs ?? undefined}
+              onChange={onFrameTimeMsChange}
             />
           </div>
           <div className='space-y-1'>
             <Label className='text-xs'>Duration (ms)</Label>
-            <Input
-              type='number'
+            <NumericInput
               className='h-8 no-spinners'
               placeholder={totalDuration > 0 ? `${totalDuration} (auto)` : 'auto'}
-              value={durationMs ?? ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                onDurationMsChange(v ? Number(v) : null);
-              }}
+              value={durationMs ?? undefined}
+              onChange={(v) => onDurationMsChange(v ?? null)}
             />
           </div>
         </div>
@@ -355,24 +348,19 @@ function StepCard({
       <div className='flex gap-2'>
         <div className='flex-1'>
           <Label className='text-[10px] text-muted-foreground'>Duration (ms)</Label>
-          <Input
-            type='number'
+          <NumericInput
             className='h-7 text-xs no-spinners'
             value={step.duration_ms}
-            onChange={(e) => onUpdate({ duration_ms: Number(e.target.value) || 0 })}
+            onChange={(v) => onUpdate({ duration_ms: v ?? 0 })}
           />
         </div>
         <div className='flex-1'>
           <Label className='text-[10px] text-muted-foreground'>Start at (ms)</Label>
-          <Input
-            type='number'
+          <NumericInput
             className='h-7 text-xs no-spinners'
             placeholder='0'
-            value={step.start_ms ?? ''}
-            onChange={(e) => {
-              const v = e.target.value;
-              onUpdate({ start_ms: v ? Number(v) : undefined });
-            }}
+            value={step.start_ms ?? undefined}
+            onChange={(v) => onUpdate({ start_ms: v })}
           />
         </div>
         {step.kind !== 'transform_matrix' && (
@@ -458,28 +446,20 @@ function SimpleValueFields({
       <div className='flex gap-2'>
         <div className='flex-1'>
           <Label className='text-[10px] text-muted-foreground'>Start</Label>
-          <Input
-            type='number'
+          <NumericInput
             className='h-7 text-xs no-spinners'
             placeholder='0'
-            value={startVal}
-            onChange={(e) => {
-              const v = e.target.value;
-              onUpdate({ start: v ? Number(v) : undefined });
-            }}
+            value={typeof startVal === 'number' ? startVal : undefined}
+            onChange={(v) => onUpdate({ start: v as unknown as number })}
           />
         </div>
         <div className='flex-1'>
           <Label className='text-[10px] text-muted-foreground'>End</Label>
-          <Input
-            type='number'
+          <NumericInput
             className='h-7 text-xs no-spinners'
             placeholder='1'
-            value={endVal}
-            onChange={(e) => {
-              const v = e.target.value;
-              onUpdate({ end: v ? Number(v) : undefined });
-            }}
+            value={typeof endVal === 'number' ? endVal : undefined}
+            onChange={(v) => onUpdate({ end: v as unknown as number })}
           />
         </div>
       </div>
@@ -582,11 +562,10 @@ function RotationMatrixFields({
         {(['roll', 'pitch', 'yaw'] as const).map((axis) => (
           <div key={axis} className='flex-1'>
             <Label className='text-[10px] text-muted-foreground capitalize'>{axis} °</Label>
-            <Input
-              type='number'
+            <NumericInput
               className='h-7 text-xs no-spinners'
               value={Math.round(startEuler[axis] * 10) / 10}
-              onChange={(e) => updateStartEuler(axis, Number(e.target.value) || 0)}
+              onChange={(v) => updateStartEuler(axis, v ?? 0)}
             />
           </div>
         ))}
@@ -596,11 +575,10 @@ function RotationMatrixFields({
         {(['roll', 'pitch', 'yaw'] as const).map((axis) => (
           <div key={axis} className='flex-1'>
             <Label className='text-[10px] text-muted-foreground capitalize'>{axis} °</Label>
-            <Input
-              type='number'
+            <NumericInput
               className='h-7 text-xs no-spinners'
               value={Math.round(endEuler[axis] * 10) / 10}
-              onChange={(e) => updateEndEuler(axis, Number(e.target.value) || 0)}
+              onChange={(v) => updateEndEuler(axis, v ?? 0)}
             />
           </div>
         ))}
@@ -756,15 +734,11 @@ function ChannelSection({
             </div>
             <div className='w-16'>
               <Label className='text-[10px] text-muted-foreground'>Freq</Label>
-              <Input
-                type='number'
+              <NumericInput
                 className='h-7 text-xs no-spinners'
                 placeholder='1'
-                value={frequency ?? ''}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  onFrequencyChange(v ? Number(v) : undefined);
-                }}
+                value={frequency ?? undefined}
+                onChange={onFrequencyChange}
               />
             </div>
             <label className='flex items-center gap-1 text-[10px] pb-1'>
@@ -809,15 +783,11 @@ function AdvancedOptions({
     <div className='grid grid-cols-3 gap-2 pl-2'>
       <div>
         <Label className='text-[10px] text-muted-foreground'>Frequency</Label>
-        <Input
-          type='number'
+        <NumericInput
           className='h-7 text-xs no-spinners'
           placeholder='1'
-          value={simple.frequency ?? ''}
-          onChange={(e) => {
-            const v = e.target.value;
-            onUpdate({ frequency: v ? Number(v) : undefined } as Partial<SimpleInterpolationStep>);
-          }}
+          value={simple.frequency ?? undefined}
+          onChange={(v) => onUpdate({ frequency: v } as Partial<SimpleInterpolationStep>)}
         />
       </div>
       <div className='flex flex-col gap-1'>
@@ -833,15 +803,11 @@ function AdvancedOptions({
       </div>
       <div>
         <Label className='text-[10px] text-muted-foreground'>Noise</Label>
-        <Input
-          type='number'
+        <NumericInput
           className='h-7 text-xs no-spinners'
           placeholder='0'
-          value={simple.noise_magnitude ?? ''}
-          onChange={(e) => {
-            const v = e.target.value;
-            onUpdate({ noise_magnitude: v ? Number(v) : undefined } as Partial<SimpleInterpolationStep>);
-          }}
+          value={simple.noise_magnitude ?? undefined}
+          onChange={(v) => onUpdate({ noise_magnitude: v } as Partial<SimpleInterpolationStep>)}
         />
       </div>
       {simple.kind === 'scalar' && (
@@ -895,11 +861,10 @@ function Vec3Input({
       {['X', 'Y', 'Z'].map((axis, i) => (
         <div key={axis} className='flex-1'>
           <Label className='text-[10px] text-muted-foreground'>{axis}</Label>
-          <Input
-            type='number'
+          <NumericInput
             className='h-7 text-xs no-spinners'
             value={value[i] ?? 0}
-            onChange={(e) => update(i, Number(e.target.value) || 0)}
+            onChange={(v) => update(i, v ?? 0)}
           />
         </div>
       ))}

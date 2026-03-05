@@ -1,8 +1,8 @@
 'use client';
 
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+import { NumericInput } from '../components/NumericInput';
 import type { RotationCenterPanelProps } from './types';
 
 export function RotationCenterPanel({
@@ -13,8 +13,7 @@ export function RotationCenterPanel({
   onModeChange,
   onCoordsChange,
 }: RotationCenterPanelProps) {
-  const handleCoordChange = (axis: 0 | 1 | 2, value: string) => {
-    const num = parseFloat(value) || 0;
+  const handleCoordChange = (axis: 0 | 1 | 2, num: number) => {
     const vals: [number, number, number] = [x, y, z];
     vals[axis] = num;
     onCoordsChange(vals[0], vals[1], vals[2]);
@@ -48,13 +47,11 @@ export function RotationCenterPanel({
           {(['X', 'Y', 'Z'] as const).map((label, i) => (
             <div key={label}>
               <Label className='text-xs text-muted-foreground'>{label}</Label>
-              <Input
+              <NumericInput
                 className='h-8 text-sm font-mono no-spinners'
-                type='number'
-                step='0.1'
                 placeholder='0'
                 value={[x, y, z][i]}
-                onChange={(e) => handleCoordChange(i as 0 | 1 | 2, e.target.value)}
+                onChange={(v) => handleCoordChange(i as 0 | 1 | 2, v ?? 0)}
                 title={`${label} coordinate`}
               />
             </div>

@@ -36,6 +36,7 @@ import { ConstantsSection } from './ConstantsSection';
 import {
   createEmptyNode,
   createEmptyConstant,
+  deepCopyNode,
   UINode,
   ConstantDefinition,
   getValidChildren,
@@ -159,9 +160,7 @@ export function UIBuilder() {
     const nodeToCopy = nodes.find((node) => node.id === id);
     if (!nodeToCopy) return;
 
-    const copiedNode = JSON.parse(JSON.stringify(nodeToCopy));
-    copiedNode.id = Date.now().toString();
-    if (copiedNode.ref) copiedNode.ref = copiedNode.ref + '_copy';
+    const copiedNode = deepCopyNode(nodeToCopy);
 
     setNodes([...nodes, copiedNode]);
   };

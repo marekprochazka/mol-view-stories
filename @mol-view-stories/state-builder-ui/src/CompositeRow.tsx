@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { UINode, ConstantDefinition } from '@mol-view-stories/state-builder/src';
-import { createEmptyNode, MVS_KIND_LABELS, countSubtreeNodes } from '@mol-view-stories/state-builder/src';
+import { createEmptyNode, deepCopyNode, MVS_KIND_LABELS, countSubtreeNodes } from '@mol-view-stories/state-builder/src';
 import { ConfirmDialog } from './ui/confirm-dialog';
 import type { CompositeSequence } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import { getCompositeValidChildren, DOWNLOAD_PARSE_SEQUENCE } from '@mol-view-stories/state-builder/src/types/composite-sequences';
@@ -224,8 +224,7 @@ export function CompositeRow({
     const child = currentChildren[childIndex];
     if (!child) return;
 
-    const copiedChild = JSON.parse(JSON.stringify(child));
-    copiedChild.id = Date.now().toString() + Math.random();
+    const copiedChild = deepCopyNode(child);
     const updatedExitNode = {
       ...exitNode,
       children: [...currentChildren, copiedChild],

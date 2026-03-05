@@ -1,8 +1,8 @@
 'use client';
 
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+import { NumericInput } from '../components/NumericInput';
 import { columnToRowMajor4, rowToColumnMajor4, IDENTITY_4x4 } from '@mol-view-stories/state-builder/src';
 import type { MatrixPanelProps } from './types';
 
@@ -11,9 +11,7 @@ export function MatrixPanel({ matrix, onChange }: MatrixPanelProps) {
   const displayMatrix = matrix ?? IDENTITY_4x4;
   const rowMajor = columnToRowMajor4(displayMatrix);
 
-  const handleCellChange = (rowMajorIndex: number, value: string) => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return;
+  const handleCellChange = (rowMajorIndex: number, num: number) => {
     const newRowMajor = [...rowMajor];
     newRowMajor[rowMajorIndex] = num;
     onChange(rowToColumnMajor4(newRowMajor));
@@ -44,13 +42,11 @@ export function MatrixPanel({ matrix, onChange }: MatrixPanelProps) {
             <div className='border-l-2 border-t-2 border-b-2 border-foreground/30 w-1.5 self-stretch rounded-l-sm' />
             <div className='grid grid-cols-4 gap-1 flex-1'>
               {rowMajor.map((val, idx) => (
-                <Input
+                <NumericInput
                   key={idx}
                   className='h-7 text-xs font-mono text-center px-1 no-spinners'
-                  type='number'
-                  step='0.01'
                   value={parseFloat(val.toFixed(6))}
-                  onChange={(e) => handleCellChange(idx, e.target.value)}
+                  onChange={(v) => { if (v !== undefined) handleCellChange(idx, v); }}
                   title={`Row ${Math.floor(idx / 4) + 1}, Col ${(idx % 4) + 1}`}
                 />
               ))}

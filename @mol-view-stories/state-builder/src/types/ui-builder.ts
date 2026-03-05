@@ -154,6 +154,18 @@ function generateId(): string {
 }
 
 /**
+ * Deep-copy a UINode subtree: fresh IDs throughout, refs suffixed with `_copy`.
+ */
+export function deepCopyNode(node: UINode): UINode {
+  return {
+    ...node,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    ref: node.ref ? `${node.ref}_copy` : undefined,
+    children: node.children?.map(deepCopyNode),
+  };
+}
+
+/**
  * Count total nodes in a subtree (excluding the root node itself)
  */
 export function countSubtreeNodes(node: UINode): number {

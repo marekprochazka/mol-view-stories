@@ -1,8 +1,8 @@
 'use client';
 
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+import { NumericInput } from '../components/NumericInput';
 import type { RadiusPanelProps } from './types';
 
 export function RadiusPanel({
@@ -39,24 +39,19 @@ export function RadiusPanel({
           <div>
             <Label className='text-xs'>Radius factor</Label>
             <p className='text-xs text-muted-foreground mb-1'>Multiplier on bounding sphere radius (default: 1)</p>
-            <Input
+            <NumericInput
               className='h-8 text-sm font-mono'
-              type='number'
-              step='0.1'
-              min='0'
               value={radiusFactor}
-              onChange={(e) => onRadiusFactorChange(parseFloat(e.target.value) || 1)}
+              onChange={(v) => onRadiusFactorChange(v ?? 1)}
             />
           </div>
           <div>
             <Label className='text-xs'>Radius extent</Label>
             <p className='text-xs text-muted-foreground mb-1'>Additional additive extent in Å (default: 0)</p>
-            <Input
+            <NumericInput
               className='h-8 text-sm font-mono'
-              type='number'
-              step='0.1'
               value={radiusExtent}
-              onChange={(e) => onRadiusExtentChange(parseFloat(e.target.value) || 0)}
+              onChange={(v) => onRadiusExtentChange(v ?? 0)}
             />
           </div>
         </div>
@@ -64,13 +59,10 @@ export function RadiusPanel({
         <div>
           <Label className='text-xs'>Radius (Å)</Label>
           <p className='text-xs text-muted-foreground mb-1'>Absolute radius, overrides factor and extent</p>
-          <Input
+          <NumericInput
             className='h-8 text-sm font-mono'
-            type='number'
-            step='0.5'
-            min='0'
             value={radius ?? 10}
-            onChange={(e) => onRadiusChange(parseFloat(e.target.value) || 0)}
+            onChange={(v) => onRadiusChange(v ?? 0)}
           />
         </div>
       )}

@@ -1,5 +1,5 @@
-import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
+import { NumericInput } from '../NumericInput';
 
 interface CameraFieldsProps {
   params: Record<string, unknown>;
@@ -18,10 +18,9 @@ function Vector3Input({
   onChange: (newValue: number[]) => void;
   placeholder?: [string, string, string];
 }) {
-  const handleChange = (index: number, strValue: string) => {
-    const numValue = parseFloat(strValue) || 0;
+  const handleChange = (index: number, num: number) => {
     const newValue = [...value];
-    newValue[index] = numValue;
+    newValue[index] = num;
     onChange(newValue);
   };
 
@@ -29,31 +28,25 @@ function Vector3Input({
     <div className='flex-1'>
       <Label className='text-xs'>{label}</Label>
       <div className='flex gap-1'>
-        <Input
+        <NumericInput
           className='h-8 text-sm'
-          type='number'
-          step='0.1'
           placeholder={placeholder[0]}
           value={value[0] ?? 0}
-          onChange={(e) => handleChange(0, e.target.value)}
+          onChange={(v) => handleChange(0, v ?? 0)}
           title={`${label} X`}
         />
-        <Input
+        <NumericInput
           className='h-8 text-sm'
-          type='number'
-          step='0.1'
           placeholder={placeholder[1]}
           value={value[1] ?? 0}
-          onChange={(e) => handleChange(1, e.target.value)}
+          onChange={(v) => handleChange(1, v ?? 0)}
           title={`${label} Y`}
         />
-        <Input
+        <NumericInput
           className='h-8 text-sm'
-          type='number'
-          step='0.1'
           placeholder={placeholder[2]}
           value={value[2] ?? 0}
-          onChange={(e) => handleChange(2, e.target.value)}
+          onChange={(v) => handleChange(2, v ?? 0)}
           title={`${label} Z`}
         />
       </div>

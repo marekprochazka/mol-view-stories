@@ -1,14 +1,13 @@
 'use client';
 
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { NumericInput } from '../components/NumericInput';
 import type { EulerAnglesPanelProps } from './types';
 
 export function EulerAnglesPanel({ roll, pitch, yaw, onChange }: EulerAnglesPanelProps) {
   const isGimbalLock = Math.abs(pitch) > 89;
 
-  const handleChange = (axis: 'roll' | 'pitch' | 'yaw', value: string) => {
-    const num = parseFloat(value) || 0;
+  const handleChange = (axis: 'roll' | 'pitch' | 'yaw', num: number) => {
     switch (axis) {
       case 'roll': onChange(num, pitch, yaw); break;
       case 'pitch': onChange(roll, num, yaw); break;
@@ -22,34 +21,28 @@ export function EulerAnglesPanel({ roll, pitch, yaw, onChange }: EulerAnglesPane
       <div className='grid grid-cols-3 gap-2'>
         <div>
           <Label className='text-xs text-muted-foreground'>Roll (X)</Label>
-          <Input
+          <NumericInput
             className='h-8 text-sm font-mono no-spinners'
-            type='number'
-            step='1'
             value={parseFloat(roll.toFixed(2))}
-            onChange={(e) => handleChange('roll', e.target.value)}
+            onChange={(v) => handleChange('roll', v ?? 0)}
             title='Roll around X axis'
           />
         </div>
         <div>
           <Label className='text-xs text-muted-foreground'>Pitch (Y)</Label>
-          <Input
+          <NumericInput
             className='h-8 text-sm font-mono no-spinners'
-            type='number'
-            step='1'
             value={parseFloat(pitch.toFixed(2))}
-            onChange={(e) => handleChange('pitch', e.target.value)}
+            onChange={(v) => handleChange('pitch', v ?? 0)}
             title='Pitch around Y axis'
           />
         </div>
         <div>
           <Label className='text-xs text-muted-foreground'>Yaw (Z)</Label>
-          <Input
+          <NumericInput
             className='h-8 text-sm font-mono no-spinners'
-            type='number'
-            step='1'
             value={parseFloat(yaw.toFixed(2))}
-            onChange={(e) => handleChange('yaw', e.target.value)}
+            onChange={(v) => handleChange('yaw', v ?? 0)}
             title='Yaw around Z axis'
           />
         </div>

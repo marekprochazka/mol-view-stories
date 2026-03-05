@@ -1,8 +1,8 @@
 'use client';
 
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
+import { NumericInput } from '../components/NumericInput';
 import type { VectorsPanelProps } from './types';
 
 const DEFAULT_DIRECTION: [number, number, number] = [0, 0, -1];
@@ -22,8 +22,7 @@ function Vector3Row({
   const isCustom = value !== undefined;
   const displayValue = value ?? defaultValue;
 
-  const handleChange = (axis: 0 | 1 | 2, str: string) => {
-    const num = parseFloat(str) || 0;
+  const handleChange = (axis: 0 | 1 | 2, num: number) => {
     const next: [number, number, number] = [...displayValue] as [number, number, number];
     next[axis] = num;
     onChange(next);
@@ -46,13 +45,11 @@ function Vector3Row({
         {(['X', 'Y', 'Z'] as const).map((axis, i) => (
           <div key={axis}>
             <Label className='text-xs text-muted-foreground'>{axis}</Label>
-            <Input
+            <NumericInput
               className='h-8 text-sm font-mono'
-              type='number'
-              step='0.1'
               value={displayValue[i]}
               disabled={!isCustom}
-              onChange={(e) => handleChange(i as 0 | 1 | 2, e.target.value)}
+              onChange={(v) => handleChange(i as 0 | 1 | 2, v ?? 0)}
               title={`${label} ${axis}`}
             />
           </div>

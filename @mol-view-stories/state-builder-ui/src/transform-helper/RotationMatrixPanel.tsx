@@ -1,7 +1,7 @@
 'use client';
 
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { NumericInput } from '../components/NumericInput';
 import { columnToRowMajor3, rowToColumnMajor3, isValidRotationMatrix } from '@mol-view-stories/state-builder/src';
 import type { RotationMatrixPanelProps } from './types';
 
@@ -10,9 +10,7 @@ export function RotationMatrixPanel({ matrix, onChange }: RotationMatrixPanelPro
   const rowMajor = columnToRowMajor3(matrix);
   const valid = isValidRotationMatrix(matrix);
 
-  const handleCellChange = (rowMajorIndex: number, value: string) => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return;
+  const handleCellChange = (rowMajorIndex: number, num: number) => {
     const newRowMajor = [...rowMajor];
     newRowMajor[rowMajorIndex] = num;
     onChange(rowToColumnMajor3(newRowMajor));
@@ -34,13 +32,11 @@ export function RotationMatrixPanel({ matrix, onChange }: RotationMatrixPanelPro
         <div className='border-l-2 border-t-2 border-b-2 border-foreground/30 w-1.5 self-stretch rounded-l-sm' />
         <div className='grid grid-cols-3 gap-1 flex-1'>
           {rowMajor.map((val, idx) => (
-            <Input
+            <NumericInput
               key={idx}
               className='h-8 text-xs font-mono text-center no-spinners'
-              type='number'
-              step='0.01'
               value={parseFloat(val.toFixed(6))}
-              onChange={(e) => handleCellChange(idx, e.target.value)}
+              onChange={(v) => { if (v !== undefined) handleCellChange(idx, v); }}
               title={`Row ${Math.floor(idx / 3) + 1}, Col ${(idx % 3) + 1}`}
             />
           ))}

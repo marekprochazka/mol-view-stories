@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog';
+import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { PaletteIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -16,9 +17,11 @@ import {
   createConstantRef,
   MOLSTAR_COLOR_THEMES,
   CARBON_COLOR_OPTIONS,
+  selectorToString,
 } from '@mol-view-stories/state-builder/src';
 import type { ConstantDefinition, ConstantRef } from '@mol-view-stories/state-builder/src';
 import { SimplePanel, ThemePanel, ConstantPanel } from './color-helper';
+import { SelectorHelper } from './SelectorHelper';
 
 interface ColorHelperProps {
   params: Record<string, unknown>;
@@ -57,6 +60,7 @@ export function ColorHelper({
   const [carbonColorName, setCarbonColorName] = useState('element-symbol');
   const [carbonColorHex, setCarbonColorHex] = useState('#808080');
   const [constantValue, setConstantValue] = useState('');
+  const [selectorValue, setSelectorValue] = useState<unknown | undefined>(undefined);
 
   const colorConstants = availableConstants.filter((c) => c.type === 'colors');
 
@@ -82,6 +86,8 @@ export function ColorHelper({
       setActiveTab('simple');
       setSimpleColor((params.color as string) || '');
     }
+
+    setSelectorValue(params.selector ?? undefined);
   }, [open, params, custom]);
 
   const handleCarbonColorNameChange = (name: string) => {
@@ -92,8 +98,12 @@ export function ColorHelper({
   };
 
   const handleApply = () => {
+    const selectorParam = selectorValue !== undefined ? { selector: selectorValue } : {};
+
     if (activeTab === 'simple') {
-      onApply({ ...params, color: simpleColor }, undefined);
+      const base = { ...params };
+      if (selectorValue === undefined) delete base.selector;
+      onApply({ ...base, color: simpleColor, ...selectorParam }, undefined);
     } else if (activeTab === 'theme') {
       const themeParams = custom?.molstar_color_theme_params as Record<string, unknown> | undefined;
       let newThemeParams: Record<string, unknown> | undefined;
@@ -115,18 +125,21 @@ export function ColorHelper({
 
       const newParams = { ...params };
       delete newParams.color;
+      if (selectorValue === undefined) delete newParams.selector;
 
-      onApply(newParams, {
+      onApply({ ...newParams, ...selectorParam }, {
         molstar_color_theme_name: themeName,
         molstar_color_theme_params: newThemeParams,
       });
     } else {
       // constant
+      const base = { ...params };
+      if (selectorValue === undefined) delete base.selector;
       if (constantValue) {
         const [constName, entryKey] = constantValue.split(':');
-        onApply({ ...params, color: createConstantRef(constName, entryKey) }, undefined);
+        onApply({ ...base, color: createConstantRef(constName, entryKey), ...selectorParam }, undefined);
       } else {
-        onApply({ ...params, color: createConstantRef('', '') }, undefined);
+        onApply({ ...base, color: createConstantRef('', ''), ...selectorParam }, undefined);
       }
     }
     setOpen(false);
@@ -193,7 +206,7 @@ export function ColorHelper({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className='sm:max-w-sm'>
+      <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle>Color Helper</DialogTitle>
         </DialogHeader>
@@ -230,6 +243,31 @@ export function ColorHelper({
             />
           </TabsContent>
         </Tabs>
+
+        <div className='border-t pt-3 space-y-1'>
+          <Label className='text-xs text-muted-foreground'>Selector (optional)</Label>
+          {selectorValue !== undefined && (
+            <p className='text-xs font-mono bg-muted px-2 py-1 rounded break-all'>
+              {selectorToString(selectorValue)}
+            </p>
+          )}
+          <div className='flex gap-2'>
+            <SelectorHelper
+              onSelect={(sel) => setSelectorValue(sel)}
+              initialValue={selectorValue}
+            />
+            {selectorValue !== undefined && (
+              <Button
+                size='sm'
+                variant='ghost'
+                className='h-8 px-2 text-xs'
+                onClick={() => setSelectorValue(undefined)}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
 
         <div className='flex gap-2 justify-end pt-2'>
           <Button variant='outline' onClick={() => setOpen(false)}>

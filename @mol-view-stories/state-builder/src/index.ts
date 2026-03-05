@@ -15,6 +15,7 @@ export {
   createConstantRef,
   isConstantRef,
   countSubtreeNodes,
+  deepCopyNode,
   mvsNodeToUINode,
   mvsTreeToUINodes,
   uiNodeToMVSNode,
