@@ -30,8 +30,6 @@ import {
   computeAnimationDuration,
   getAnimatableProperties,
   filterRefsForKind,
-  eulerToMatrix,
-  matrixToEuler,
   IDENTITY_3x3,
 } from '@mol-view-stories/state-builder/src';
 import type {
@@ -43,6 +41,7 @@ import type {
   RefInfo,
 } from '@mol-view-stories/state-builder/src';
 import type { TimelinePanelProps } from './types';
+import { RotationMatrixPanel } from '../transform-helper';
 
 export function TimelinePanel({
   frameTimeMs,
@@ -540,48 +539,28 @@ function RotationMatrixFields({
   step: SimpleInterpolationStep;
   onUpdate: (updates: Partial<SimpleInterpolationStep>) => void;
 }) {
-  const startMatrix = (Array.isArray(step.start) && step.start.length === 9 ? step.start : IDENTITY_3x3) as number[];
-  const endMatrix = (Array.isArray(step.end) && step.end.length === 9 ? step.end : IDENTITY_3x3) as number[];
-  const startEuler = matrixToEuler(startMatrix);
-  const endEuler = matrixToEuler(endMatrix);
-
-  const updateStartEuler = (axis: 'roll' | 'pitch' | 'yaw', val: number) => {
-    const euler = { ...startEuler, [axis]: val };
-    onUpdate({ start: eulerToMatrix(euler.roll, euler.pitch, euler.yaw) as unknown as number });
-  };
-
-  const updateEndEuler = (axis: 'roll' | 'pitch' | 'yaw', val: number) => {
-    const euler = { ...endEuler, [axis]: val };
-    onUpdate({ end: eulerToMatrix(euler.roll, euler.pitch, euler.yaw) as unknown as number });
-  };
+  const startMatrix = (Array.isArray(step.start) && step.start.length === 9
+    ? step.start
+    : IDENTITY_3x3) as number[];
+  const endMatrix = (Array.isArray(step.end) && step.end.length === 9
+    ? step.end
+    : IDENTITY_3x3) as number[];
 
   return (
-    <div className='space-y-1'>
-      <div className='flex gap-1 items-end'>
-        <Label className='text-[10px] text-muted-foreground w-10 pb-1'>Start</Label>
-        {(['roll', 'pitch', 'yaw'] as const).map((axis) => (
-          <div key={axis} className='flex-1'>
-            <Label className='text-[10px] text-muted-foreground capitalize'>{axis} °</Label>
-            <NumericInput
-              className='h-7 text-xs no-spinners'
-              value={Math.round(startEuler[axis] * 10) / 10}
-              onChange={(v) => updateStartEuler(axis, v ?? 0)}
-            />
-          </div>
-        ))}
+    <div className='space-y-3'>
+      <div>
+        <Label className='text-[10px] text-muted-foreground mb-1'>Start</Label>
+        <RotationMatrixPanel
+          matrix={startMatrix}
+          onChange={(m) => onUpdate({ start: m as unknown as number })}
+        />
       </div>
-      <div className='flex gap-1 items-end'>
-        <Label className='text-[10px] text-muted-foreground w-10 pb-1'>End</Label>
-        {(['roll', 'pitch', 'yaw'] as const).map((axis) => (
-          <div key={axis} className='flex-1'>
-            <Label className='text-[10px] text-muted-foreground capitalize'>{axis} °</Label>
-            <NumericInput
-              className='h-7 text-xs no-spinners'
-              value={Math.round(endEuler[axis] * 10) / 10}
-              onChange={(v) => updateEndEuler(axis, v ?? 0)}
-            />
-          </div>
-        ))}
+      <div>
+        <Label className='text-[10px] text-muted-foreground mb-1'>End</Label>
+        <RotationMatrixPanel
+          matrix={endMatrix}
+          onChange={(m) => onUpdate({ end: m as unknown as number })}
+        />
       </div>
     </div>
   );
@@ -623,9 +602,20 @@ function TransformMatrixFields({
         onFrequencyChange={(v) => onUpdate({ rotation_frequency: v })}
         onAlternateDirectionChange={(v) => onUpdate({ rotation_alternate_direction: v })}
       >
-        <p className='text-[10px] text-muted-foreground'>
-          Rotation start/end: 3x3 matrix (9 numbers). Use Raw tab for precise input.
-        </p>
+        <div>
+          <Label className='text-[10px] text-muted-foreground mb-1'>Start</Label>
+          <RotationMatrixPanel
+            matrix={step.rotation_start?.length === 9 ? step.rotation_start : IDENTITY_3x3}
+            onChange={(m) => onUpdate({ rotation_start: m })}
+          />
+        </div>
+        <div>
+          <Label className='text-[10px] text-muted-foreground mb-1'>End</Label>
+          <RotationMatrixPanel
+            matrix={step.rotation_end?.length === 9 ? step.rotation_end : IDENTITY_3x3}
+            onChange={(m) => onUpdate({ rotation_end: m })}
+          />
+        </div>
       </ChannelSection>
 
       {/* Translation channel */}

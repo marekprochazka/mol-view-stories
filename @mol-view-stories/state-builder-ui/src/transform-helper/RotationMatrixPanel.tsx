@@ -2,18 +2,16 @@
 
 import { Label } from '../ui/label';
 import { NumericInput } from '../components/NumericInput';
-import { columnToRowMajor3, rowToColumnMajor3, isValidRotationMatrix } from '@mol-view-stories/state-builder/src';
+import { isValidRotationMatrix } from '@mol-view-stories/state-builder/src';
 import type { RotationMatrixPanelProps } from './types';
 
 export function RotationMatrixPanel({ matrix, onChange }: RotationMatrixPanelProps) {
-  // Display in row-major (natural reading) order
-  const rowMajor = columnToRowMajor3(matrix);
   const valid = isValidRotationMatrix(matrix);
 
-  const handleCellChange = (rowMajorIndex: number, num: number) => {
-    const newRowMajor = [...rowMajor];
-    newRowMajor[rowMajorIndex] = num;
-    onChange(rowToColumnMajor3(newRowMajor));
+  const handleCellChange = (idx: number, num: number) => {
+    const next = [...matrix];
+    next[idx] = num;
+    onChange(next);
   };
 
   return (
@@ -27,17 +25,17 @@ export function RotationMatrixPanel({ matrix, onChange }: RotationMatrixPanelPro
         )}
       </div>
 
-      {/* 3x3 grid with bracket styling */}
+      {/* 3x3 grid with bracket styling — values in flat array order (matching code) */}
       <div className='flex items-center gap-1'>
         <div className='border-l-2 border-t-2 border-b-2 border-foreground/30 w-1.5 self-stretch rounded-l-sm' />
         <div className='grid grid-cols-3 gap-1 flex-1'>
-          {rowMajor.map((val, idx) => (
+          {matrix.map((val, idx) => (
             <NumericInput
               key={idx}
               className='h-8 text-xs font-mono text-center no-spinners'
               value={parseFloat(val.toFixed(6))}
               onChange={(v) => { if (v !== undefined) handleCellChange(idx, v); }}
-              title={`Row ${Math.floor(idx / 3) + 1}, Col ${(idx % 3) + 1}`}
+              title={`[${idx}]`}
             />
           ))}
         </div>
@@ -45,7 +43,7 @@ export function RotationMatrixPanel({ matrix, onChange }: RotationMatrixPanelPro
       </div>
 
       <p className='text-xs text-muted-foreground'>
-        Displayed row-by-row. Stored in column-major order per MVS spec.
+        Values in flat array order, matching code representation.
       </p>
     </div>
   );

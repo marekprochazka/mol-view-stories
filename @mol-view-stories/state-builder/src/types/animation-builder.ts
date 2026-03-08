@@ -6,6 +6,7 @@
 // ============================================================
 
 import type { UINode } from './ui-builder';
+import { IDENTITY_3x3 } from './transform-params';
 
 // ============================================================
 // Types
@@ -122,10 +123,10 @@ export interface LabeledOption<T = string> {
 // ============================================================
 
 export const INTERPOLATION_KINDS: readonly LabeledOption<InterpolationKind>[] = [
-  // { value: 'scalar', label: 'Scalar' },
-  // { value: 'vec3', label: 'Vector3' },
-  // { value: 'rotation_matrix', label: 'Rotation Matrix' },
-  // { value: 'transform_matrix', label: 'Transform Matrix' },
+  { value: 'scalar', label: 'Scalar' },
+  { value: 'vec3', label: 'Vector3' },
+  { value: 'rotation_matrix', label: 'Rotation Matrix' },
+  { value: 'transform_matrix', label: 'Transform Matrix' },
   { value: 'color', label: 'Color' },
 ];
 
@@ -299,6 +300,17 @@ export function createEmptyInterpolationStep(kind: InterpolationKind = 'scalar')
       duration_ms: 1000,
     };
   }
+  if (kind === 'rotation_matrix') {
+    return {
+      id: nextStepId(),
+      kind: 'rotation_matrix',
+      target_ref: '',
+      property: 'rotation',
+      duration_ms: 1000,
+      start: [...IDENTITY_3x3] as unknown as number,
+      end: [...IDENTITY_3x3] as unknown as number,
+    };
+  }
   return {
     id: nextStepId(),
     kind,
@@ -399,8 +411,16 @@ export function convertAnimationToMVSNode(params: AnimationParams): {
     } else {
       // Simple kinds: scalar, vec3, rotation_matrix, color
       const simple = step as SimpleInterpolationStep;
-      if (simple.start !== undefined && simple.start !== null) interpolateParams.start = simple.start;
-      if (simple.end !== undefined && simple.end !== null) interpolateParams.end = simple.end;
+      if (step.kind === 'rotation_matrix') {
+        // Always emit start and end for rotation_matrix — identity must be explicit in the output
+        interpolateParams.start = (Array.isArray(simple.start) && simple.start.length === 9)
+          ? simple.start : [...IDENTITY_3x3];
+        interpolateParams.end = (Array.isArray(simple.end) && simple.end.length === 9)
+          ? simple.end : [...IDENTITY_3x3];
+      } else {
+        if (simple.start !== undefined && simple.start !== null) interpolateParams.start = simple.start;
+        if (simple.end !== undefined && simple.end !== null) interpolateParams.end = simple.end;
+      }
       if (simple.easing && simple.easing !== 'linear') interpolateParams.easing = simple.easing;
       if (simple.frequency && simple.frequency > 1) interpolateParams.frequency = simple.frequency;
       if (simple.alternate_direction) interpolateParams.alternate_direction = true;
