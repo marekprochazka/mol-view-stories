@@ -22,6 +22,8 @@ interface StructureMetadataContextValue {
   isLoading: boolean;
   /** Trigger metadata extraction from loaded structures */
   loadMetadata: () => void;
+  /** Clear loaded metadata */
+  clearMetadata: () => void;
   /** Whether there are any structures loaded in the plugin */
   hasStructures: boolean;
   /** Error message if extraction failed */
@@ -47,6 +49,11 @@ export function StructureMetadataProvider({
   const [metadata, setMetadata] = useState<StructureMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const clearMetadata = useCallback(() => {
+    setMetadata(null);
+    setError(null);
+  }, []);
 
   const loadMetadata = useCallback(() => {
     if (!plugin) {
@@ -121,6 +128,7 @@ export function StructureMetadataProvider({
         metadata,
         isLoading,
         loadMetadata,
+        clearMetadata,
         hasStructures,
         error,
         generateAndLoad: onGenerateCode ? generateAndLoad : null,

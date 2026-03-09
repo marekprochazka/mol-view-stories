@@ -11,6 +11,8 @@ interface MetadataStatusProps {
   error: string | null;
   onLoadMetadata: () => void;
   onGenerateAndLoad: (() => void) | null;
+  onRefreshMetadata: () => void;
+  onClearMetadata: () => void;
 }
 
 export function MetadataStatus({
@@ -20,6 +22,8 @@ export function MetadataStatus({
   error,
   onLoadMetadata,
   onGenerateAndLoad,
+  onRefreshMetadata,
+  onClearMetadata,
 }: MetadataStatusProps) {
   return (
     <div className='space-y-2'>
@@ -60,9 +64,15 @@ export function MetadataStatus({
       {metadata && (
         <div className='flex items-center gap-2 p-2 rounded-md bg-green-50 border border-green-200 text-sm text-green-700 dark:bg-green-950 dark:border-green-800 dark:text-green-300'>
           <DatabaseIcon className='size-4 shrink-0' />
-          <span>
+          <span className='flex-1'>
             Loaded {metadata.chains.length} chains, {metadata.ligands.length} ligands
           </span>
+          <Button size='sm' variant='outline' onClick={onRefreshMetadata} className='shrink-0 h-6 text-xs px-2'>
+            Refresh
+          </Button>
+          <Button size='sm' variant='ghost' onClick={onClearMetadata} className='shrink-0 h-6 text-xs px-2 text-muted-foreground'>
+            Clear
+          </Button>
         </div>
       )}
     </div>

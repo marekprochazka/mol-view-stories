@@ -13,11 +13,13 @@ import {
   buildChainSelector,
   buildLigandSelector,
   buildResidueSelector,
+  buildUnionSelector,
   getAvailableChains,
   getAvailableLigands,
   parseRawSelectorInput,
   parseSelector,
   selectorToString,
+  type ComponentSelectorObject,
   type SelectorBuilderMode,
   type StructureMetadata,
 } from '@mol-view-stories/state-builder/src';
@@ -25,11 +27,14 @@ import { ListIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   ChainPanel,
+  ExpressionPanel,
   LigandPanel,
   MetadataStatus,
   QuickPanel,
   RawPanel,
   ResiduePanel,
+  UnionPanel,
+  type UnionEntry,
 } from './selector-helper';
 import { useStructureMetadataContext } from './StructureMetadataContext';
 
@@ -45,6 +50,8 @@ const MODE_LABELS: { mode: SelectorBuilderMode; label: string }[] = [
   { mode: 'residue', label: 'Residue' },
   { mode: 'ligand', label: 'Ligand' },
   { mode: 'quick', label: 'Quick' },
+  { mode: 'expression', label: 'Expression' },
+  { mode: 'union', label: 'Union' },
   { mode: 'raw', label: 'Raw' },
 ];
 
@@ -60,7 +67,10 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
   const [ligandName, setLigandName] = useState('');
   const [ligandChain, setLigandChain] = useState('');
   const [rawInput, setRawInput] = useState('');
-  const [rawError, setRawError] = useState('');
+  const [unionEntries, setUnionEntries] = useState<UnionEntry[]>([
+    { id: '1', chain: '', from: '', to: '' },
+  ]);
+  const [expressionValue, setExpressionValue] = useState<ComponentSelectorObject>({});
 
   // Context and derived state
   const metadataContext = useStructureMetadataContext();
@@ -89,6 +99,21 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
         case 'raw':
           setRawInput(parsed.rawValue || '');
           break;
+        case 'union':
+          if (parsed.unionEntries) {
+            setUnionEntries(
+              parsed.unionEntries.map((e, i) => ({
+                id: String(i + 1),
+                chain: e.chain,
+                from: e.from !== undefined ? String(e.from) : '',
+                to: e.to !== undefined ? String(e.to) : '',
+              }))
+            );
+          }
+          break;
+        case 'expression':
+          setExpressionValue(parsed.expressionValue ?? {});
+          break;
       }
     }
   }, [open, initialValue]);
@@ -101,10 +126,11 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
     setLigandName('');
     setLigandChain('');
     setRawInput('');
-    setRawError('');
+    setUnionEntries([{ id: '1', chain: '', from: '', to: '' }]);
+    setExpressionValue({});
   };
 
-  const buildSelector = (): { selector: unknown; valid: boolean } => {
+  const buildSelector = (): { selector: unknown; valid: boolean; error?: string } => {
     switch (mode) {
       case 'chain':
         return selectedChain
@@ -124,14 +150,33 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
       case 'raw':
         if (rawInput.trim()) {
           const result = parseRawSelectorInput(rawInput);
-          if (result.error) {
-            setRawError(result.error);
-            return { selector: null, valid: false };
-          }
-          setRawError('');
+          if (result.error) return { selector: null, valid: false, error: result.error };
           return { selector: result.value, valid: true };
         }
         return { selector: null, valid: false };
+      case 'union': {
+        const selectors = unionEntries
+          .filter((e) => e.chain.trim())
+          .map((e) => {
+            if (e.from) {
+              return buildResidueSelector(
+                e.chain,
+                parseInt(e.from, 10),
+                e.to ? parseInt(e.to, 10) : undefined
+              );
+            }
+            return buildChainSelector(e.chain);
+          });
+        return selectors.length > 0
+          ? { selector: buildUnionSelector(selectors), valid: true }
+          : { selector: null, valid: false };
+      }
+      case 'expression': {
+        const hasAnyField = Object.keys(expressionValue).length > 0;
+        return hasAnyField
+          ? { selector: expressionValue, valid: true }
+          : { selector: null, valid: false };
+      }
       default:
         return { selector: null, valid: false };
     }
@@ -152,7 +197,7 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
     resetState();
   };
 
-  const { selector, valid } = buildSelector();
+  const { selector, valid, error: previewError } = buildSelector();
   const previewText = valid && selector !== null ? selectorToString(selector) : 'No selection';
 
   return (
@@ -175,7 +220,7 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
         )}
       </DialogTrigger>
 
-      <DialogContent className='max-w-lg'>
+      <DialogContent className='sm:max-w-lg'>
         <DialogHeader>
           <DialogTitle>Build Component Selector</DialogTitle>
         </DialogHeader>
@@ -190,6 +235,8 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
               error={metadataContext.error}
               onLoadMetadata={metadataContext.loadMetadata}
               onGenerateAndLoad={metadataContext.generateAndLoad}
+              onRefreshMetadata={metadataContext.loadMetadata}
+              onClearMetadata={metadataContext.clearMetadata}
             />
           )}
 
@@ -249,12 +296,21 @@ export function SelectorHelper({ onSelect, initialValue, preview, metadata }: Se
           {mode === 'raw' && (
             <RawPanel
               value={rawInput}
-              error={rawError}
-              onChange={(v) => {
-                setRawInput(v);
-                setRawError('');
-              }}
+              error={previewError ?? ''}
+              onChange={(v) => setRawInput(v)}
             />
+          )}
+
+          {mode === 'union' && (
+            <UnionPanel
+              entries={unionEntries}
+              onChange={setUnionEntries}
+              availableChains={availableChains}
+            />
+          )}
+
+          {mode === 'expression' && (
+            <ExpressionPanel value={expressionValue} onChange={setExpressionValue} />
           )}
 
           {/* Preview - not shown for quick mode */}

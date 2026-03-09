@@ -45,7 +45,7 @@ export type ComponentSelectorValue = string | ComponentSelectorObject | Componen
 /**
  * Selection mode for the selector builder UI
  */
-export type SelectorBuilderMode = 'chain' | 'residue' | 'ligand' | 'quick' | 'raw';
+export type SelectorBuilderMode = 'chain' | 'residue' | 'ligand' | 'quick' | 'raw' | 'union' | 'expression';
 
 /**
  * Structure metadata for dynamic selector population.
@@ -192,6 +192,8 @@ export interface ParsedSelector {
   ligandName?: string;
   ligandChain?: string;
   rawValue?: string;
+  unionEntries?: { chain: string; from?: number; to?: number }[];
+  expressionValue?: ComponentSelectorObject;
 }
 
 /**
@@ -204,8 +206,18 @@ export function parseSelector(value: unknown): ParsedSelector {
     return { mode: 'raw', rawValue: value };
   }
 
+  // Array selector → union mode
+  if (Array.isArray(value)) {
+    const entries = (value as ComponentSelectorObject[]).map((obj) => ({
+      chain: obj.label_asym_id ?? '',
+      from: obj.beg_label_seq_id ?? obj.label_seq_id,
+      to: obj.end_label_seq_id,
+    }));
+    return { mode: 'union', unionEntries: entries };
+  }
+
   // Object selector
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+  if (typeof value === 'object' && value !== null) {
     const obj = value as ComponentSelectorObject;
 
     // Ligand selector (has label_comp_id, no residue fields)
@@ -227,16 +239,21 @@ export function parseSelector(value: unknown): ParsedSelector {
       };
     }
 
-    // Chain selector
-    if (obj.label_asym_id) {
+    // Chain selector (only label_asym_id, no other fields)
+    if (obj.label_asym_id && Object.keys(obj).length === 1) {
       return {
         mode: 'chain',
         chainId: obj.label_asym_id,
       };
     }
+
+    // Any other object with fields → expression mode
+    if (Object.keys(obj).length > 0) {
+      return { mode: 'expression', expressionValue: obj };
+    }
   }
 
-  // Array or unknown format - fall back to raw
+  // Unknown format - fall back to raw
   return {
     mode: 'raw',
     rawValue: typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value ?? ''),

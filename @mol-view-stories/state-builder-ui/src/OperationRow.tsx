@@ -9,7 +9,8 @@ import { ConfirmDialog } from './ui/confirm-dialog';
 import { detectCompositeSequence } from '@mol-view-stories/state-builder/src/types/composite-sequences';
 import type { MVSKind } from 'molstar/lib/extensions/mvs/tree/mvs/mvs-tree';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { cn } from './lib/utils';
 import { TreeLines } from './components/TreeLines';
 import { OperationActions } from './components/OperationActions';
 import { KindSelect } from './components/KindSelect';
@@ -65,6 +66,16 @@ export function OperationRow({
   allNodes = [],
 }: OperationRowProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customInput, setCustomInput] = useState(() =>
+    node.custom != null ? JSON.stringify(node.custom, null, 2) : ''
+  );
+  const [customError, setCustomError] = useState('');
+
+  useEffect(() => {
+    setCustomInput(node.custom != null ? JSON.stringify(node.custom, null, 2) : '');
+  }, [node.custom]);
+
   const [pendingAction, setPendingAction] = useState<{
     type: 'delete' | 'kindChange';
     newKind?: MVSKind;
@@ -164,6 +175,22 @@ export function OperationRow({
 
   const handleCustomChange = (custom: Record<string, unknown> | undefined) => {
     onUpdate({ custom });
+  };
+
+  const handleCustomInputChange = (v: string) => {
+    setCustomInput(v);
+    if (!v.trim()) {
+      setCustomError('');
+      handleCustomChange(undefined);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(v);
+      setCustomError('');
+      handleCustomChange(parsed);
+    } catch {
+      setCustomError('Invalid JSON');
+    }
   };
 
   const handleRefChange = (value: string) => {
@@ -280,6 +307,33 @@ export function OperationRow({
             onCopy={onCopy}
             onRemove={handleRemove}
           />
+        </div>
+
+        {/* Custom Data expander */}
+        <div className='mt-1'>
+          <button
+            type='button'
+            className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors'
+            onClick={() => setCustomOpen((o) => !o)}
+          >
+            <ChevronRightIcon className={cn('size-3 transition-transform', customOpen && 'rotate-90')} />
+            Custom data
+            {node.custom != null && (
+              <span className='ml-1 size-1.5 rounded-full bg-primary inline-block' />
+            )}
+          </button>
+          {customOpen && (
+            <div className='mt-1'>
+              <textarea
+                className='w-full text-xs font-mono border rounded-md p-2 min-h-[80px] resize-y bg-background'
+                placeholder='{ "key": "value" }'
+                value={customInput}
+                onChange={(e) => handleCustomInputChange(e.target.value)}
+                spellCheck={false}
+              />
+              {customError && <p className='text-xs text-destructive mt-1'>{customError}</p>}
+            </div>
+          )}
         </div>
       </div>
 
