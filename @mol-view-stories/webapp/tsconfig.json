@@ -22,6 +22,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@mol-view-stories/lib": ["../lib/mod.ts"],
+      "@molstar/state-builder": ["../../../molstar-components/src/state-builder/index.ts"],
+      "@molstar/state-builder/*": ["../../../molstar-components/src/state-builder/*"],
     },
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

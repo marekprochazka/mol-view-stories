@@ -3,7 +3,7 @@
 import { tryFindIfStoryIsShared } from '@/lib/data-utils';
 import { StoryManager, generateStoriesHtml, StoryFileExtension } from '@mol-view-stories/lib';
 import type { SceneAsset, SceneData, Story, StoryMetadata } from '@mol-view-stories/lib';
-import type { ConstantDefinition } from '@mol-view-stories/state-builder/src';
+import type { ConstantDefinition } from '@molstar/molstar-components';
 import { getDefaultStore } from 'jotai';
 import { MVSData } from 'molstar/lib/extensions/mvs/mvs-data';
 import { download } from 'molstar/lib/mol-util/download';

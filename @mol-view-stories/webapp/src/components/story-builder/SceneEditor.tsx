@@ -63,10 +63,9 @@ import { PluginReactContext } from 'molstar/lib/mol-plugin-ui/base';
 import Link from 'next/link';
 import { ImmediateInput } from '../controls';
 import { adjustedCameraPosition } from '@mol-view-stories/lib';
-import { snapshotToCameraParams } from '@mol-view-stories/state-builder/src';
+import { snapshotToCameraParams, UIBuilder, UIBuilderProvider } from '@molstar/molstar-components';
+import type { UIBuilderHandle, UIBuilderSnapshot, ConstantDefinition } from '@molstar/molstar-components';
 import { LLMContext } from './editors/llm-context';
-import { UIBuilder, UIBuilderProvider, type UIBuilderHandle, type UIBuilderSnapshot } from '@mol-view-stories/state-builder-ui/src';
-import type { ConstantDefinition } from '@mol-view-stories/state-builder/src';
 import { modifyStoryConstants } from '@/app/state/actions';
 
 function Vector({ value, className }: { value?: Vec3 | number[]; title?: string; className?: string }) {

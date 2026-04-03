@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@mol-view-stories/lib": "workspace:*",
-    "@mol-view-stories/state-builder": "workspace:*",
-    "@mol-view-stories/state-builder-ui": "workspace:*",
+    "@molstar/molstar-components": "file:../../../molstar-components",
     "@monaco-editor/react": "4.8.0-rc.3",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
