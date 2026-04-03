@@ -9,13 +9,22 @@ project:
 
 website:
   title: 'MolViewStories Documentation'
+  favicon: img/favicon.ico
   repo-url: https://github.com/molstar/mol-view-stories
   repo-actions: [edit, issue]
   site-url: https://molstar.org/mol-view-stories/
-
   sidebar:
     style: 'docked'
     search: true
+    # logo: img/favicon.ico
+    title: 'MolViewStories'
+    tools:
+      - icon: github
+        href: https://github.com/molstar/mol-view-stories
+        text: 'GitHub Repository'
+      - icon: globe
+        href: https://molstar.org/mol-view-stories/
+        text: 'Live Website'
     contents:
       - text: 'Introduction'
         href: index.qmd
@@ -30,10 +39,24 @@ website:
             href: core-features.qmd
           - text: 'Cloud Storage & Sharing'
             href: webapp-cloud-storage.qmd
+          - text: 'CLI Tool'
+            href: cli.qmd
+          - text: 'Cloud Storage'
+            href: webapp-cloud-storage.qmd
           - text: 'Tips & Workflows'
             href: tips-shortcuts.qmd
           - text: 'CLI Tool'
             href: cli.qmd
+          - section: 'Full Examples'
+            contents:
+              - text: 'Creating MOTM 01'
+                href: example-stories/making-of-mom1.qmd
+              - text: 'Creating MOTM 300'
+                href: example-stories/making-of-mom300.qmd
+              - text: 'Creating NPC Basket'
+                href: example-stories/making-of-npc.qmd
+              - text: 'Creating CYP3A4'
+                href: example-stories/making-of-cyp3a4.qmd
 
       - section: 'MolViewSpec API'
         contents:
@@ -49,6 +72,8 @@ website:
             href: molviewspec/primitives.qmd
           - text: 'Volumetric Data'
             href: molviewspec/volumes.qmd
+          - text: 'Trajectory Data'
+            href: molviewspec/trajectories.qmd
           - text: 'Animations'
             href: molviewspec/animations.qmd
           - text: 'Examples'
@@ -68,6 +93,7 @@ website:
             href: first-time-login.qmd
           - text: 'MVS Spec'
             href: molviewspec/mvs-spec.qmd
+
 format:
   html:
     theme: cosmo

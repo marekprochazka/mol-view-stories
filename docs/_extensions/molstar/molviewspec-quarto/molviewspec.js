@@ -202503,7 +202503,7 @@ function u3(e3, t3, n3, o3, i4, u4) {
   return l.vnode && l.vnode(l3), l3;
 }
 
-// https://jsr.io/@zachcp/molstar-components/0.4.14/src/MolstarViewer.tsx
+// https://jsr.io/@molstar/molstar-components/0.5.0/src/MolstarViewer.tsx
 var defaultConfig = {
   layoutIsExpanded: false,
   layoutShowControls: false
@@ -216381,7 +216381,7 @@ if (monacoEnvironment2?.globalAPI) {
 // ../../../Library/Caches/deno/deno_esbuild/registry.npmjs.org/monaco-editor@0.55.1/node_modules/monaco-editor/esm/vs/editor/editor.api.js
 init_editor_api2();
 
-// https://jsr.io/@zachcp/molstar-components/0.4.14/src/MolViewEditor.tsx
+// https://jsr.io/@molstar/molstar-components/0.5.0/src/MolViewEditor.tsx
 init_monaco_contribution();
 
 // ../../../Library/Caches/deno/deno_esbuild/registry.npmjs.org/monaco-editor@0.55.1/node_modules/monaco-editor/esm/vs/basic-languages/typescript/typescript.js
@@ -216859,7 +216859,7 @@ var language3 = {
   tokenizer: language2.tokenizer
 };
 
-// https://jsr.io/@zachcp/molstar-components/0.4.14/src/MolViewEditor.tsx
+// https://jsr.io/@molstar/molstar-components/0.5.0/src/MolViewEditor.tsx
 var DEFAULT_CODE = `const structure = builder
   .download({ url: 'https://www.ebi.ac.uk/pdbe/entry-files/1cbs.bcif' })
   .parse({ format: 'bcif' })
@@ -216971,7 +216971,7 @@ function MolViewEditor({
   });
 }
 
-// https://jsr.io/@zachcp/molstar-components/0.4.14/src/EditorWithViewer.tsx
+// https://jsr.io/@molstar/molstar-components/0.5.0/src/EditorWithViewer.tsx
 function EditorWithViewer({
   initialCode,
   layout: layout2 = "horizontal",
