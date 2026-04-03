@@ -44,7 +44,7 @@ importers:
         version: link:../lib
       '@molstar/molstar-components':
         specifier: file:../../../molstar-components
-        version: file:../molstar-components(jotai@2.13.1(@types/react@19.1.11)(react@19.2.3))(molstar@5.5.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: file:../molstar-components(jotai@2.13.1(@types/react@19.1.11)(react@19.2.3))(molstar@5.7.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@monaco-editor/react':
         specifier: 4.8.0-rc.3
         version: 4.8.0-rc.3(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -3772,10 +3772,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@molstar/molstar-components@file:../molstar-components(jotai@2.13.1(@types/react@19.1.11)(react@19.2.3))(molstar@5.5.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@molstar/molstar-components@file:../molstar-components(jotai@2.13.1(@types/react@19.1.11)(react@19.2.3))(molstar@5.7.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(monaco-editor@0.55.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       jotai: 2.13.1(@types/react@19.1.11)(react@19.2.3)
-      molstar: 5.5.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      molstar: 5.7.0(@types/react@19.1.11)(fp-ts@2.16.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       monaco-editor: 0.55.1
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
