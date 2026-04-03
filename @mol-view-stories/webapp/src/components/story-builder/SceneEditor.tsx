@@ -420,9 +420,24 @@ function CurrentSceneView() {
   model.store = useStore();
   model.setCameraSnapshot = useAtom(CameraPositionAtom)[1];
 
+  const storyRef = useRef(story);
+  storyRef.current = story;
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
+
+  // Only depend on fields that affect MVS rendering — not ui_builder_state, header, description
   useEffect(() => {
-    model.loadStory(story, scene);
-  }, [model, story, scene]);
+    model.loadStory(storyRef.current, sceneRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    model,
+    story?.javascript,
+    scene?.id,
+    scene?.javascript,
+    scene?.camera,
+    scene?.linger_duration_ms,
+    scene?.transition_duration_ms,
+  ]);
 
   useEffect(() => {
     return () => model.plugin.managers.markdownExtensions.audio.stop();
