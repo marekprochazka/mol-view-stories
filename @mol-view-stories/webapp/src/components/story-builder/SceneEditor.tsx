@@ -52,7 +52,27 @@ import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { Scheduler } from 'molstar/lib/mol-task';
 import { memo, useEffect, useRef, useState, type RefObject } from 'react';
 import { Label } from '../ui/label';
-import { SceneCodeEditor } from './editors/SceneCodeEditor';
+import { MolViewEditor, useSyncToBuilder } from '@molstar/molstar-components';
+
+// Configure Monaco workers for MolViewEditor (ESM Monaco from @molstar/molstar-components).
+// webpack 5 bundles these worker modules as separate chunks via the new URL() pattern.
+// Runs at module load time so MolViewEditor's MonacoEnvironment guard picks this up.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if (typeof window !== 'undefined' && !(window as any).MonacoEnvironment) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).MonacoEnvironment = {
+    getWorker(_moduleId: string, label: string): Worker {
+      if (label === 'typescript' || label === 'javascript') {
+        return new Worker(
+          new URL('monaco-editor/esm/vs/language/typescript/ts.worker', import.meta.url)
+        );
+      }
+      return new Worker(
+        new URL('monaco-editor/esm/vs/editor/editor.worker', import.meta.url)
+      );
+    },
+  };
+}
 import { SceneMarkdownEditor } from './editors/SceneMarkdownEditor';
 import { OptionsEditor } from './editors/SceneOptions';
 import { PressToCodeComplete, PressToSave } from '../common';
@@ -593,11 +613,26 @@ function SceneMarkdownEditorSection() {
 
 function SceneCodeEditorSection() {
   const builderRef = useRef<UIBuilderHandle>(null);
+  const editorRef = useRef<{ getValue(): string } | null>(null);
   const scene = useAtomValue(ActiveSceneAtom);
   const story = useAtomValue(StoryAtom);
   const activeSceneId = useAtomValue(ActiveSceneIdAtom);
   const cameraSnapshot = useAtomValue(CameraPositionAtom);
   const [viewMode, setViewMode] = useState<'code' | 'builder'>('code');
+  const [confirmingSync, setConfirmingSync] = useState(false);
+
+  const { sync, isSyncing, error: syncError, clearError } = useSyncToBuilder(builderRef, {
+    commonCode: story.javascript || undefined,
+  });
+
+  const handleSyncConfirm = async () => {
+    const code = editorRef.current?.getValue() ?? scene?.javascript ?? '';
+    const ok = await sync(code);
+    if (ok) {
+      setConfirmingSync(false);
+      setViewMode('builder');
+    }
+  };
 
   return (
     <div className='flex flex-col h-full gap-2'>
@@ -626,14 +661,27 @@ function SceneCodeEditorSection() {
             >
               UI Builder
             </Button>
+            {viewMode === 'code' && (
+              <Button
+                size='sm'
+                variant='outline'
+                className='ml-auto'
+                onClick={() => { clearError(); setConfirmingSync(true); }}
+              >
+                → Sync to Builder
+              </Button>
+            )}
           </div>
           {/* Code editor — always mounted to avoid losing editor state; hidden when in builder mode */}
           <div className={cn('flex flex-col flex-1 gap-2', viewMode !== 'code' && 'hidden')}>
             <div className='border rounded flex-1 relative'>
-              <SceneCodeEditor
+              <MolViewEditor
                 value={scene?.javascript || ''}
                 commonCode={story.javascript || ''}
                 onSave={(code) => modifyCurrentScene({ javascript: code })}
+                onEditorMount={(editor) => { editorRef.current = editor; }}
+                className='absolute inset-0'
+                editorOptions={{ theme: 'vs' }}
               />
             </div>
             <div className='flex gap-2'>
@@ -641,6 +689,46 @@ function SceneCodeEditorSection() {
               <PressToCodeComplete />
             </div>
           </div>
+
+          {/* Sync confirmation dialog */}
+          {confirmingSync && (
+            <div
+              className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
+              onClick={() => { if (!isSyncing) { setConfirmingSync(false); clearError(); } }}
+            >
+              <div
+                className='bg-white rounded-lg border shadow-lg p-6 max-w-md w-[90%] flex flex-col gap-3'
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p className='font-semibold text-base'>Sync Code to Builder?</p>
+                <p className='text-sm text-muted-foreground'>
+                  This will overwrite the UI Builder state by running your code with the MVS builder.
+                </p>
+                <p className='text-sm text-amber-600'>
+                  ⚠ If you later generate code from the builder, it will be reformatted and may
+                  differ from your original code.
+                </p>
+                {syncError && <p className='text-sm text-destructive'>{syncError}</p>}
+                <div className='flex gap-2 justify-end'>
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    disabled={isSyncing}
+                    onClick={() => { setConfirmingSync(false); clearError(); }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size='sm'
+                    disabled={isSyncing}
+                    onClick={handleSyncConfirm}
+                  >
+                    {isSyncing ? 'Syncing…' : 'Sync to Builder'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Builder — always mounted so Jotai store survives tab switches; hidden when in code mode */}
           <div className={cn('border rounded flex-1 relative overflow-hidden', viewMode !== 'builder' && 'hidden')}>
             <UIBuilderProvider
