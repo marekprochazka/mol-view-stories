@@ -682,6 +682,7 @@ function SceneCodeEditorSection() {
                 onEditorMount={(editor) => { editorRef.current = editor; }}
                 className='absolute inset-0'
                 editorOptions={{ theme: 'vs' }}
+                hybridMode={true}
               />
             </div>
             <div className='flex gap-2'>
