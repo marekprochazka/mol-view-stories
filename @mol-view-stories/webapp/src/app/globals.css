@@ -3,7 +3,7 @@
 
 @plugin "@tailwindcss/typography";
 
-@source "../../../../@mol-view-stories/state-builder-ui/src";
+@source "../../../node_modules/@molstar/molstar-components/src/state-builder-ui";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -173,6 +173,12 @@
     align-self: flex-start !important;
   }
 
+  /* UIBuilder row padding — dialogs render in Portal outside [data-ui-builder], safe to target */
+  [data-ui-builder] .border.rounded-lg {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
   /* Hide number input spinners */
   .no-spinners::-webkit-outer-spin-button,
   .no-spinners::-webkit-inner-spin-button {
@@ -181,5 +187,17 @@
   }
   .no-spinners {
     -moz-appearance: textfield;
+  }
+}
+
+@layer utilities {
+  /* Force-generate classes used only in molstar-components that @source scanning misses under Turbopack */
+  @media (min-width: 640px) {
+    .sm\:max-w-2xl {
+      max-width: var(--container-2xl, 42rem);
+    }
+  }
+  .max-h-\[85vh\] {
+    max-height: 85vh;
   }
 }

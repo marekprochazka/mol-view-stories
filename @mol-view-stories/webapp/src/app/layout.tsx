@@ -1,6 +1,5 @@
 'use client';
 
-import '@molstar/molstar-components/state-builder-ui.css';
 import 'molstar/build/viewer/molstar.css';
 import './globals.css';
 import { Inter } from 'next/font/google';
