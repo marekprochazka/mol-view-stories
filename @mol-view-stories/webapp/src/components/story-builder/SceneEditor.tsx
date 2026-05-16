@@ -297,8 +297,8 @@ function ExperimentalBanner({ onDismiss }: { onDismiss: () => void }) {
       <div className='flex items-start gap-2'>
         <TriangleAlert className='size-4 shrink-0 mt-0.5' />
         <span className='flex-1'>
-          The State Builder is an <strong>experimental feature</strong> — features and workflows may
-          evolve before the stable release, and you may also encounter bugs.
+          The State Builder is an <strong>experimental feature</strong> — features and workflows may evolve before the
+          stable release, and you may also encounter bugs.
         </span>
         <button onClick={onDismiss} title='Dismiss' className='shrink-0 opacity-70 hover:opacity-100'>
           <XIcon className='size-4' />
@@ -640,7 +640,12 @@ function SceneCodeEditorSection() {
   const [confirmingSync, setConfirmingSync] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  const { sync, isSyncing, error: syncError, clearError } = useSyncToBuilder(builderRef, {
+  const {
+    sync,
+    isSyncing,
+    error: syncError,
+    clearError,
+  } = useSyncToBuilder(builderRef, {
     commonCode: story.javascript || undefined,
   });
 
@@ -666,11 +671,7 @@ function SceneCodeEditorSection() {
       <div className='flex gap-6 flex-1 min-h-0'>
         <div className='flex-1 flex flex-col gap-2 shrink-0 min-h-0'>
           <div className='flex gap-2 items-center mb-2'>
-            <Button
-              size='sm'
-              variant={viewMode === 'code' ? 'default' : 'outline'}
-              onClick={() => setViewMode('code')}
-            >
+            <Button size='sm' variant={viewMode === 'code' ? 'default' : 'outline'} onClick={() => setViewMode('code')}>
               Code Editor
             </Button>
             <Button
@@ -685,7 +686,10 @@ function SceneCodeEditorSection() {
                 size='sm'
                 variant='outline'
                 className='ml-auto'
-                onClick={() => { clearError(); setConfirmingSync(true); }}
+                onClick={() => {
+                  clearError();
+                  setConfirmingSync(true);
+                }}
               >
                 → Sync to Builder
               </Button>
@@ -698,7 +702,9 @@ function SceneCodeEditorSection() {
                 value={scene?.javascript || ''}
                 commonCode={story.javascript || ''}
                 onSave={(code) => modifyCurrentScene({ javascript: code })}
-                onEditorMount={(editor) => { editorRef.current = editor; }}
+                onEditorMount={(editor) => {
+                  editorRef.current = editor;
+                }}
                 className='absolute inset-0'
                 editorOptions={{ theme: 'vs' }}
                 hybridMode={true}
@@ -714,7 +720,12 @@ function SceneCodeEditorSection() {
           {confirmingSync && (
             <div
               className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'
-              onClick={() => { if (!isSyncing) { setConfirmingSync(false); clearError(); } }}
+              onClick={() => {
+                if (!isSyncing) {
+                  setConfirmingSync(false);
+                  clearError();
+                }
+              }}
             >
               <div
                 className='bg-white rounded-lg border shadow-lg p-6 max-w-md w-[90%] flex flex-col gap-3'
@@ -725,8 +736,8 @@ function SceneCodeEditorSection() {
                   This will overwrite the UI Builder state by running your code with the MVS builder.
                 </p>
                 <p className='text-sm text-amber-600'>
-                  ⚠ If you later generate code from the builder, it will be reformatted and may
-                  differ from your original code.
+                  ⚠ If you later generate code from the builder, it will be reformatted and may differ from your
+                  original code.
                 </p>
                 {syncError && <p className='text-sm text-destructive'>{syncError}</p>}
                 <div className='flex gap-2 justify-end'>
@@ -734,15 +745,14 @@ function SceneCodeEditorSection() {
                     size='sm'
                     variant='outline'
                     disabled={isSyncing}
-                    onClick={() => { setConfirmingSync(false); clearError(); }}
+                    onClick={() => {
+                      setConfirmingSync(false);
+                      clearError();
+                    }}
                   >
                     Cancel
                   </Button>
-                  <Button
-                    size='sm'
-                    disabled={isSyncing}
-                    onClick={handleSyncConfirm}
-                  >
+                  <Button size='sm' disabled={isSyncing} onClick={handleSyncConfirm}>
                     {isSyncing ? 'Syncing…' : 'Sync to Builder'}
                   </Button>
                 </div>
@@ -767,7 +777,9 @@ function SceneCodeEditorSection() {
               plugin={_modelInstance?.plugin}
               cameraSnapshot={cameraSnapshot}
               onCodeGenerated={(code: string) => modifyCurrentScene({ javascript: code })}
-              onNotification={(n: { type: 'success' | 'error'; message: string }) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
+              onNotification={(n: { type: 'success' | 'error'; message: string }) =>
+                n.type === 'error' ? toast.error(n.message) : toast.success(n.message)
+              }
             >
               <UIBuilder />
             </UIBuilderProvider>
