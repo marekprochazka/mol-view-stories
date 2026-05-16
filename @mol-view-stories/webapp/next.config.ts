@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import molstarAliases from "@molstar/molstar-components/aliases";
 
 const nextConfig: NextConfig = {
   output: "export",
@@ -9,9 +8,6 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   transpilePackages: ["@jsr/molstar__molstar-components"],
-  turbopack: {
-    resolveAlias: molstarAliases,
-  },
   webpack(config, { webpack }) {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
