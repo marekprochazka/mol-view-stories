@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import molstarAliases from "@molstar/molstar-components/aliases";
 
 const nextConfig: NextConfig = {
   output: "export",
@@ -6,6 +7,23 @@ const nextConfig: NextConfig = {
   basePath: process.env.NODE_ENV === "production" ? "/mol-view-stories" : "",
   images: {
     unoptimized: true,
+  },
+  transpilePackages: ["@jsr/molstar__molstar-components"],
+  turbopack: {
+    resolveAlias: molstarAliases,
+  },
+  webpack(config, { webpack }) {
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^npm:/,
+        (resource: { request: string }) => {
+          resource.request = resource.request
+            .slice(4)
+            .replace(/((?:@[^@/]+\/)?[^@/]+)@[^/]*(.*)/g, "$1$2");
+        }
+      )
+    );
+    return config;
   },
 };
 

@@ -34,6 +34,7 @@ import {
   Edit,
   FolderIcon,
   PinIcon,
+  TriangleAlert,
   XIcon,
   LucideMessageCircleQuestion,
   Copy,
@@ -53,26 +54,9 @@ import { Scheduler } from 'molstar/lib/mol-task';
 import { memo, useEffect, useRef, useState, type RefObject } from 'react';
 import { Label } from '../ui/label';
 import { MolViewEditor, useSyncToBuilder } from '@molstar/molstar-components';
+import { setupMonacoWorkers } from '@/lib/monaco-worker-setup';
 
-// Configure Monaco workers for MolViewEditor (ESM Monaco from @molstar/molstar-components).
-// webpack 5 bundles these worker modules as separate chunks via the new URL() pattern.
-// Runs at module load time so MolViewEditor's MonacoEnvironment guard picks this up.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (typeof window !== 'undefined' && !(window as any).MonacoEnvironment) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).MonacoEnvironment = {
-    getWorker(_moduleId: string, label: string): Worker {
-      if (label === 'typescript' || label === 'javascript') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/typescript/ts.worker', import.meta.url)
-        );
-      }
-      return new Worker(
-        new URL('monaco-editor/esm/vs/editor/editor.worker', import.meta.url)
-      );
-    },
-  };
-}
+setupMonacoWorkers();
 import { SceneMarkdownEditor } from './editors/SceneMarkdownEditor';
 import { OptionsEditor } from './editors/SceneOptions';
 import { PressToCodeComplete, PressToSave } from '../common';
@@ -307,6 +291,41 @@ function CodeUIControls({ builderRef }: { builderRef: RefObject<UIBuilderHandle 
   );
 }
 
+function ExperimentalBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className='rounded border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 text-sm flex flex-col gap-1'>
+      <div className='flex items-start gap-2'>
+        <TriangleAlert className='size-4 shrink-0 mt-0.5' />
+        <span className='flex-1'>
+          The State Builder is an <strong>experimental feature</strong> — features and workflows may
+          evolve before the stable release, and you may also encounter bugs.
+        </span>
+        <button onClick={onDismiss} title='Dismiss' className='shrink-0 opacity-70 hover:opacity-100'>
+          <XIcon className='size-4' />
+        </button>
+      </div>
+      <div className='flex gap-4 pl-6 text-xs font-medium'>
+        <Link
+          href='https://molstar.org/molstar-components/state-builder-docs.html'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='font-semibold hover:opacity-70'
+        >
+          Getting started (docs) ↗
+        </Link>
+        <Link
+          href='https://github.com/molstar/molstar-components/issues'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='font-semibold hover:opacity-70'
+        >
+          Have an idea or a bug to report? ↗
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function createViewer() {
   const spec = DefaultPluginUISpec();
   const plugin = new PluginUIContext({
@@ -448,7 +467,6 @@ function CurrentSceneView() {
   // Only depend on fields that affect MVS rendering — not ui_builder_state, header, description
   useEffect(() => {
     model.loadStory(storyRef.current, sceneRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     model,
     story?.javascript,
@@ -620,6 +638,7 @@ function SceneCodeEditorSection() {
   const cameraSnapshot = useAtomValue(CameraPositionAtom);
   const [viewMode, setViewMode] = useState<'code' | 'builder'>('code');
   const [confirmingSync, setConfirmingSync] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const { sync, isSyncing, error: syncError, clearError } = useSyncToBuilder(builderRef, {
     commonCode: story.javascript || undefined,
@@ -644,8 +663,8 @@ function SceneCodeEditorSection() {
           <CameraState />
         </div>
       </div>
-      <div className='flex gap-6 h-full'>
-        <div className='flex-1 flex flex-col gap-2 shrink-0'>
+      <div className='flex gap-6 flex-1 min-h-0'>
+        <div className='flex-1 flex flex-col gap-2 shrink-0 min-h-0'>
           <div className='flex gap-2 items-center mb-2'>
             <Button
               size='sm'
@@ -659,7 +678,7 @@ function SceneCodeEditorSection() {
               variant={viewMode === 'builder' ? 'default' : 'outline'}
               onClick={() => setViewMode('builder')}
             >
-              UI Builder
+              UI Builder (experimental)
             </Button>
             {viewMode === 'code' && (
               <Button
@@ -730,21 +749,25 @@ function SceneCodeEditorSection() {
               </div>
             </div>
           )}
+          {viewMode === 'builder' && !bannerDismissed && (
+            <ExperimentalBanner onDismiss={() => setBannerDismissed(true)} />
+          )}
+
           {/* Builder — always mounted so Jotai store survives tab switches; hidden when in code mode */}
           <div className={cn('border rounded flex-1 relative overflow-hidden', viewMode !== 'builder' && 'hidden')}>
             <UIBuilderProvider
               ref={builderRef}
               sceneKey={activeSceneId || 'default'}
               sceneInitialState={scene?.ui_builder_state as Partial<UIBuilderSnapshot> | undefined}
-              onStateChange={(snapshot) =>
+              onStateChange={(snapshot: UIBuilderSnapshot) =>
                 modifyCurrentScene({ ui_builder_state: snapshot as unknown as Record<string, unknown> })
               }
               storyConstants={story.ui_builder_constants as ConstantDefinition[] | undefined}
-              onStoryConstantsChange={(constants) => modifyStoryConstants(constants)}
+              onStoryConstantsChange={(constants: ConstantDefinition[]) => modifyStoryConstants(constants)}
               plugin={_modelInstance?.plugin}
               cameraSnapshot={cameraSnapshot}
-              onCodeGenerated={(code) => modifyCurrentScene({ javascript: code })}
-              onNotification={(n) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
+              onCodeGenerated={(code: string) => modifyCurrentScene({ javascript: code })}
+              onNotification={(n: { type: 'success' | 'error'; message: string }) => n.type === 'error' ? toast.error(n.message) : toast.success(n.message)}
             >
               <UIBuilder />
             </UIBuilderProvider>
