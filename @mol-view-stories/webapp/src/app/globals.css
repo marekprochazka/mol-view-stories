@@ -238,6 +238,50 @@
     gap: 0.125rem;
   }
 
+  /* w-9 is only used in molstar-components color-helper inputs, not in webapp src */
+  .w-9 {
+    width: 2.25rem;
+  }
+
+  /* margin classes only used in molstar-components, not in webapp src */
+  .mt-3 {
+    margin-top: 0.75rem;
+  }
+  .mb-0\.5 {
+    margin-bottom: 0.125rem;
+  }
+  .mx-0\.5 {
+    margin-inline: 0.125rem;
+  }
+  .mx-2 {
+    margin-inline: 0.5rem;
+  }
+
+  .h-auto {
+    height: auto;
+  }
+  .bg-muted\/30 {
+    background-color: color-mix(in oklab, var(--color-muted) 30%, transparent);
+  }
+  .resize-y {
+    resize: vertical;
+  }
+  .size-1\.5 {
+    width: 0.375rem;
+    height: 0.375rem;
+  }
+  .inline-block {
+    display: inline-block;
+  }
+
+  /* standalone utility — webapp src only has [&_svg]:shrink-0 and flex items-center variants */
+  .items-end {
+    align-items: flex-end;
+  }
+  .shrink-0 {
+    flex-shrink: 0;
+  }
+
   /* Dialog constraints used by molstar and/or webapp but whose sm: variants Turbopack
      fails to emit in production builds */
   .max-h-\[85vh\] {
