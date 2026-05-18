@@ -281,6 +281,9 @@
   .shrink-0 {
     flex-shrink: 0;
   }
+  .space-y-0\.5 > * + * {
+    margin-top: 0.125rem;
+  }
 
   /* Dialog constraints used by molstar and/or webapp but whose sm: variants Turbopack
      fails to emit in production builds */
