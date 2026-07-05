@@ -1,3 +1,7 @@
+## Fork info:
+
+The goal of this fork was to implement a specialized UI State Builder for the MolViewSpec (MVS) framework. The initial prototyping happened in this repository before the feature was moved into standalone library [molstar-components](https://github.com/molstar/molstar-components) and subsequently merged into upstream [mol-view-stories](https://github.com/molstar/mol-view-stories) thus this fork fullfuling its purpose and becoming archived.
+
 # MolViewStories
 
 A framework for building beautiful molecular stories.
